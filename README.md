@@ -1,4 +1,4 @@
-# Five Points Subarea — Zoning Modernization
+# Arizona-Rio Grande — Zoning Modernization
 
 Parcel-level nonconformity analysis and policy-design tools for a 799-parcel subarea north of
 Downtown El Paso (the Wyoming / Missouri / Yandell corridor and surrounding residential blocks),
@@ -7,7 +7,7 @@ built to support a Title 20 subarea rezoning.
 **Live demo:** once hosted on GitHub Pages, the whole thing lives at one URL:
 
 ```
-https://<your-username>.github.io/<your-repo>/
+https://hoffmanap.github.io/arizona-riogrande/>/
 ```
 
 That URL loads `index.html`, a two-tab landing page with both tools embedded — no separate links
@@ -26,7 +26,9 @@ to hand anyone.
 
 `story.html` and `builder.html` each carry their own data inline (no separate data files to keep
 in sync) — open either one directly as a normal HTML file and it works with no server, no build
-step, and no network access beyond loading Leaflet and Google Fonts from their CDNs.
+step, and no network access beyond loading Leaflet, Google Fonts, and the basemap tiles (Esri's
+World Light Gray Canvas + Reference layers — grayscale with street labels, free, no API key) from
+their respective CDNs.
 
 ## Hosting on GitHub Pages
 
@@ -59,12 +61,14 @@ footer):
 - **Zoning applies at the block-face level, never parcel by parcel.** Every parcel on a given block
   face (one side of one street, within one hundred-address block) carries the same subdistrict
   assignment, use permissions, and dimensional standards — there are no parcel-by-parcel carve-outs.
-- **As few subdistricts as possible.** The subarea collapses to two new subdistricts — Subdistrict 1
-  (single-family and duplex only, applied only where a face is already entirely that) and
-  Subdistrict 2 (SF/duplex/small apartment/neighborhood office & personal service, applied to any
-  face with an existing apartment, office, or personal-service use) — plus a separate "Unchanged
-  Corridor" track for commercial land that independently clears compliance on every parcel and so
-  isn't rezoned at all.
+- **As few subdistricts as possible.** The subarea collapses to three new subdistricts — Subdistrict 1
+  (single-family and duplex only, applied only where a face is already entirely that), Subdistrict 2
+  (SF/duplex/small apartment/neighborhood office & personal service, applied to most other faces),
+  and Subdistrict 3 (higher-intensity commercial, reserved for Yandell — the corridor street
+  confirmed closest to the highway — permitting a broader commercial use range than Subdistrict 2
+  while still carrying Yandell's existing houses and apartments as permitted uses) — plus a separate
+  "Unchanged Corridor" track for commercial land that independently clears compliance on every
+  parcel and so isn't rezoned at all.
 - **No off-street parking requirement** anywhere in the subarea.
 - **Setbacks are grandfathered**: every existing building's own as-built setback is its permanent
   legal minimum. New construction or redevelopment must match whichever of a lot's immediate
