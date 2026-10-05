@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five Points Subarea — Zoning Modernization Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --parchment:#EAE3D2; --ink:#2B2420; --ink-soft:#54493d;
+  --rust:#A6531C; --slate:#3D5A6C; --line:#c9bea3; --card-bg:#F4EFE2;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{background:var(--parchment); color:var(--ink); font-family:'IBM Plex Mono', monospace; display:flex; flex-direction:column;}
+h1{font-family:'Special Elite', monospace; font-weight:400; font-size:22px; margin:0;}
+header{
+  padding:16px 24px; border-bottom:2px solid var(--ink); display:flex; align-items:center;
+  justify-content:space-between; flex-wrap:wrap; gap:12px; background:var(--parchment);
+}
+.tabs{display:flex; gap:0; border:1.5px solid var(--ink);}
+.tab{
+  padding:9px 18px; font-family:'IBM Plex Mono'; font-size:13px; cursor:pointer;
+  background:var(--parchment); border-right:1.5px solid var(--ink); color:var(--ink-soft);
+}
+.tab:last-child{border-right:none;}
+.tab.active{background:var(--ink); color:var(--parchment); font-weight:600;}
+.openlink{font-size:11px; color:var(--ink-soft);}
+.openlink a{color:var(--rust); text-decoration:none; border-bottom:1px dotted var(--rust);}
+main{flex:1; position:relative;}
+iframe{position:absolute; inset:0; width:100%; height:100%; border:none; display:none;}
+iframe.active{display:block;}
+.loading{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:13px; color:var(--ink-soft); background:var(--parchment);
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Five Points Subarea — Zoning Modernization</h1>
+  <div class="tabs">
+    <div class="tab active" data-tab="story">The Story &amp; Proposed Subdistricts</div>
+    <div class="tab" data-tab="builder">Build Your Own District</div>
+  </div>
+  <div class="openlink" id="openlink">Open <a id="open-direct" href="story.html" target="_blank">story.html</a> directly in a new tab</div>
+</header>
+<main>
+  <div class="loading" id="loading">Loading…</div>
+  <iframe id="frame-story" class="active" src="story.html"></iframe>
+  <iframe id="frame-builder"></iframe>
+</main>
+<script>
+const tabs = document.querySelectorAll('.tab');
+const frames = {story: document.getElementById('frame-story'), builder: document.getElementById('frame-builder')};
+const openDirect = document.getElementById('open-direct');
+const loading = document.getElementById('loading');
+let builderLoaded = false;
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const key = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    Object.values(frames).forEach(f => f.classList.remove('active'));
+    if(key === 'builder' && !builderLoaded){
+      loading.style.display = 'flex';
+      frames.builder.src = 'builder.html';
+      frames.builder.addEventListener('load', () => { loading.style.display = 'none'; }, {once:true});
+      builderLoaded = true;
+    }
+    frames[key].classList.add('active');
+    openDirect.href = key + '.html';
+    openDirect.textContent = key + '.html';
+  });
+});
+document.getElementById('frame-story').addEventListener('load', () => { loading.style.display = 'none'; });
+</script>
+</body>
+</html>
