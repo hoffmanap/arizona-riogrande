@@ -49,6 +49,7 @@ a{color:var(--rust);}
 .popup-row{font-size:12px;display:flex;justify-content:space-between;gap:10px;padding:2px 0;}
 footer{max-width:1400px;margin:0 auto;padding:0 28px 8vh;color:var(--ink-soft);font-size:12.5px;}
 footer a{color:var(--slate);}
+.chartbox-scatter{position:relative;height:60vh;min-height:420px;}
 .statrow{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:5px 0;font-size:12.5px;}
 .statrow .lab{color:var(--ink-soft);}
 .statrow .val{font-weight:600;}
@@ -125,6 +126,46 @@ footer a{color:var(--slate);}
   </div>
 </div>
 
+<div class="section-title">
+  <div class="num">03 / DOES TRAFFIC MEAN BUSINESS?</div>
+  <h2>High-traffic streets and high-visit businesses only partly overlap</h2>
+  <p>Every street's total measured movement (foot + vehicle) plotted against the total unique visits its
+  storefronts actually received, by matching each place's street address to the 21 subarea streets
+  (398 of 398 places matched). If traffic volume reliably predicted business visits, these points would
+  line up on a clean diagonal -- they don't.</p>
+</div>
+<div class="wrap">
+  <div class="mapcol" style="flex:1 1 640px;">
+    <div class="card">
+      <div class="chartbox-scatter"><canvas id="chart-traffic-visits"></canvas></div>
+    </div>
+  </div>
+  <div class="sidebar" style="flex:0 0 420px;">
+    <div class="card">
+      <h3>What the correlation says <span class="note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">r = 0.66 across 17 streets with any storefronts</span></h3>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px;">A moderate, not a strong,
+      relationship. Traffic volume explains some but far from all of the variation in how much business
+      activity a street supports -- some streets clearly carry <b>pass-through</b> volume with little to
+      show for it in visits, and others support more business than their traffic volume alone would
+      predict.</p>
+      <div class="statrow"><span class="lab">Heavy traffic, light visits (pass-through)</span><span class="val">Ange, Noble, Lee</span></div>
+      <div class="statrow" style="border-bottom:none;"><span class="lab">Modest traffic, high visits/place (destination)</span><span class="val">Nevada, Missouri</span></div>
+    </div>
+    <div class="card">
+      <h3>Reading the outliers</h3>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0;"><b>Ange</b> carries the 6th-most total
+      movement in the subarea but has only one storefront and 218 visits -- almost purely a through-street.
+      <b>Noble</b> and <b>Lee</b> show the same pattern at a smaller scale. By contrast, <b>Missouri</b> and
+      <b>Montana</b> both convert heavy traffic into heavy visits (they anchor the top-right of the chart),
+      while <b>Nevada</b> -- middling traffic, only two storefronts -- still produces the highest average
+      visits per place in the subarea (915), suggesting a couple of genuine destinations rather than
+      pass-by volume. The zoning implication: traffic counts alone can't tell you which streets are already
+      functioning as commercial corridors versus which just happen to carry cars or pedestrians through a
+      residential block.</p>
+    </div>
+  </div>
+</div>
+
 <footer>
   <p>Source: SafeGraph place polygons and anonymized device-movement data for the Arizona-Rio Grande study
   polygon, processed with the scripts in <a href="mobility/">/mobility</a> of this repo. Unique visits are
@@ -135,6 +176,7 @@ footer a{color:var(--slate);}
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 <script>
 const INK = '#2B2420', RUST = '#A6531C', SLATE = '#3D5A6C', HL = '#E2B94B', PARCH_DARK = '#DED5BE';
 const BASEMAP_ATTR = 'Tiles &copy; Esri';
@@ -337,6 +379,60 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     e.target.classList.add('active');
     renderTrafficLayer();
   });
+});
+
+/* ===================== SECTION 3: TRAFFIC VS. VISITS SCATTER ===================== */
+const trafficVsVisits = [{"street": "MISSOURI", "traffic": 23655, "n_places": 26, "total_visits": 36660, "avg_visits_per_place": 1410.0}, {"street": "YANDELL", "traffic": 19980, "n_places": 55, "total_visits": 29405, "avg_visits_per_place": 534.6}, {"street": "MONTANA", "traffic": 18991, "n_places": 207, "total_visits": 103972, "avg_visits_per_place": 502.3}, {"street": "WYOMING", "traffic": 17733, "n_places": 27, "total_visits": 16367, "avg_visits_per_place": 606.2}, {"street": "RIO GRANDE", "traffic": 16393, "n_places": 23, "total_visits": 15232, "avg_visits_per_place": 662.3}, {"street": "ANGE", "traffic": 10926, "n_places": 1, "total_visits": 218, "avg_visits_per_place": 218.0}, {"street": "BROWN", "traffic": 10653, "n_places": 5, "total_visits": 3572, "avg_visits_per_place": 714.4}, {"street": "OCTAVIA", "traffic": 8636, "n_places": 2, "total_visits": 929, "avg_visits_per_place": 464.5}, {"street": "ARIZONA", "traffic": 8527, "n_places": 15, "total_visits": 6430, "avg_visits_per_place": 428.7}, {"street": "DALLAS", "traffic": 8209, "n_places": 5, "total_visits": 3465, "avg_visits_per_place": 693.0}, {"street": "NOBLE", "traffic": 7626, "n_places": 12, "total_visits": 1347, "avg_visits_per_place": 112.2}, {"street": "NEWMAN", "traffic": 5675, "n_places": 7, "total_visits": 2227, "avg_visits_per_place": 318.1}, {"street": "LEE", "traffic": 5529, "n_places": 3, "total_visits": 476, "avg_visits_per_place": 158.7}, {"street": "LANGTRY", "traffic": 4365, "n_places": 3, "total_visits": 1606, "avg_visits_per_place": 535.3}, {"street": "NEVADA", "traffic": 3145, "n_places": 2, "total_visits": 1830, "avg_visits_per_place": 915.0}, {"street": "CALIFORNIA", "traffic": 942, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "RIVER", "traffic": 883, "n_places": 4, "total_visits": 254, "avg_visits_per_place": 63.5}, {"street": "CLIFF", "traffic": 448, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "GOLDEN HILL TERRACE", "traffic": 342, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "CIRCLE", "traffic": 243, "n_places": 1, "total_visits": 1, "avg_visits_per_place": 1.0}, {"street": "WRIGHT", "traffic": 139, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}];
+const withPlaces = trafficVsVisits.filter(d => d.n_places > 0);
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = INK;
+new Chart(document.getElementById('chart-traffic-visits'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Streets with storefronts',
+      data: withPlaces.map(d => ({x: d.traffic, y: d.total_visits, label: d.street})),
+      backgroundColor: RUST,
+      borderColor: INK,
+      borderWidth: 1,
+      pointRadius: 7,
+      pointHoverRadius: 9
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = withPlaces[ctx.dataIndex];
+            return [`${d.street}`, `Traffic (total movements): ${d.traffic.toLocaleString()}`, `Total place visits: ${d.total_visits.toLocaleString()}`, `Storefronts: ${d.n_places}`, `Avg visits/place: ${d.avg_visits_per_place.toLocaleString()}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { title: { display:true, text:'Street traffic -- total measured movements' }, grid:{color:'#c9bea3'}, ticks:{color:INK} },
+      y: { title: { display:true, text:'Total unique visits to storefronts on that street' }, grid:{color:'#c9bea3'}, ticks:{color:INK} }
+    }
+  },
+  plugins: [{
+    id: 'pointLabels',
+    afterDatasetsDraw(chart) {
+      const {ctx} = chart;
+      const meta = chart.getDatasetMeta(0);
+      ctx.save();
+      ctx.font = "11px 'IBM Plex Mono', monospace";
+      ctx.fillStyle = INK;
+      meta.data.forEach((point, i) => {
+        const d = withPlaces[i];
+        ctx.fillText(d.street, point.x + 9, point.y + 3);
+      });
+      ctx.restore();
+    }
+  }]
 });
 </script>
 

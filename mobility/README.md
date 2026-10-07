@@ -21,6 +21,7 @@ grounding the zoning recommendations in actual visitor/traffic patterns.
 | `local_regional_draw.py` | Resident/worker split + home/work distance-from-site bands, from the resident_worker_report and CEL/CDL distance summary. | Is visitation local or a regional draw? |
 | `pin_to_places.py` | Assigns every device ping in the pin_report to the SafeGraph place it fell inside; computes unique visits (unique device-per-day) and visit density (unique visits / building sqft) per place. | Which places/areas get the most foot traffic? |
 | `pathing_mode_street.py` | Reconstructs each device's travel path from the pathing_x_report, classifies each hop as pedestrian or vehicular by implied speed, and attributes it to the nearest study-area street (via a buffered centerline). | Which streets carry pedestrian vs. vehicular traffic? |
+| `dwell_by_category.py` | Joins the pin_report (device pings) to SafeGraph place polygons to find each device's dominant place category, then joins that onto the device's row in the dwell_time report by device ID. Outputs dwell-time-bucket shares per category. | Does dwell time differ by what kind of business someone visited? Needs both `pin_report` AND `dwell_time_report` as input -- neither file alone has both place and dwell-time info. |
 
 All three scripts take the raw report file as a command-line argument (or
 default to reading from the current folder) and auto-locate the matching
