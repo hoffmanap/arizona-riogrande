@@ -43,6 +43,7 @@ iframe.active{display:block;}
     <div class="tab active" data-tab="story">The Story &amp; Proposed Subdistricts</div>
     <div class="tab" data-tab="landuse">Existing Land Use</div>
     <div class="tab" data-tab="mobility">Mobility &amp; Visitation</div>
+    <div class="tab" data-tab="visits">Visit &amp; Traffic Map</div>
     <div class="tab" data-tab="builder">Build Your Own District</div>
   </div>
   <div class="openlink" id="openlink">Open <a id="open-direct" href="story.html" target="_blank">story.html</a> directly in a new tab</div>
@@ -52,14 +53,15 @@ iframe.active{display:block;}
   <iframe id="frame-story" class="active" src="story.html"></iframe>
   <iframe id="frame-landuse"></iframe>
   <iframe id="frame-mobility"></iframe>
+  <iframe id="frame-visits"></iframe>
   <iframe id="frame-builder"></iframe>
 </main>
 <script>
 const tabs = document.querySelectorAll('.tab');
-const frames = {story: document.getElementById('frame-story'), landuse: document.getElementById('frame-landuse'), mobility: document.getElementById('frame-mobility'), builder: document.getElementById('frame-builder')};
+const frames = {story: document.getElementById('frame-story'), landuse: document.getElementById('frame-landuse'), mobility: document.getElementById('frame-mobility'), visits: document.getElementById('frame-visits'), builder: document.getElementById('frame-builder')};
 const openDirect = document.getElementById('open-direct');
 const loading = document.getElementById('loading');
-const loaded = {story: true, landuse: false, mobility: false, builder: false};
+const loaded = {story: true, landuse: false, mobility: false, visits: false, builder: false};
 
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {

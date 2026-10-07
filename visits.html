@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arizona-Rio Grande -- Visit Density &amp; Traffic Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --parchment:#EAE3D2; --parchment-dark:#DED5BE; --ink:#2B2420; --ink-soft:#54493d;
+  --rust:#A6531C; --slate:#3D5A6C; --line:#c9bea3; --card-bg:#F4EFE2; --hl:#E2B94B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--parchment);color:var(--ink);font-family:'IBM Plex Mono',monospace;line-height:1.55;}
+h1,h2,h3{font-family:'Special Elite',monospace;font-weight:400;letter-spacing:.5px;}
+a{color:var(--rust);}
+.masthead{max-width:1400px;margin:0 auto;padding:6vh 28px 3vh;border-bottom:2px solid var(--ink);}
+.masthead .kicker{font-size:13px;color:var(--ink-soft);margin-bottom:14px;display:flex;gap:10px;align-items:center;}
+.masthead .kicker .disk{width:9px;height:9px;border-radius:50%;background:var(--rust);box-shadow:0 0 0 3px rgba(166,83,28,.18);display:inline-block;}
+.masthead h1{font-size:32px;margin:0 0 10px;}
+.masthead p{max-width:820px;color:var(--ink-soft);font-size:14.5px;}
+.back{font-size:12.5px;}
+.section-title{max-width:1400px;margin:4vh auto 1.4vh;padding:0 28px;}
+.section-title .num{font-family:'Special Elite',monospace;color:var(--rust);font-size:13px;}
+.section-title h2{font-size:22px;margin:4px 0 6px;}
+.section-title p{max-width:820px;color:var(--ink-soft);font-size:13.5px;margin:0;}
+.wrap{max-width:1400px;margin:0 auto;padding:0 28px 7vh;display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.mapcol{flex:1 1 760px;min-width:320px;}
+#map-visits,#map-traffic{height:72vh;border:2px solid var(--ink);background:var(--parchment-dark);}
+.sidebar{flex:0 0 320px;position:sticky;top:20px;}
+.card{background:var(--card-bg);border:1px solid var(--line);padding:16px 18px;margin-bottom:16px;}
+.card h3{margin:0 0 10px;font-size:15px;}
+.card h3 .note{font-size:10.5px;font-weight:normal;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;display:block;margin-top:3px;}
+.mode-toggle{display:flex;gap:8px;flex-wrap:wrap;}
+.mode-btn{flex:1 1 auto;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 10px;background:var(--parchment-dark);border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;white-space:nowrap;}
+.mode-btn.active{background:var(--rust);color:#F4EFE2;border-color:var(--rust);}
+.legend-grad{height:14px;border-radius:2px;margin:10px 0 4px;}
+.legend-grad-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);}
+.placeholder{font-size:12.5px;color:var(--ink-soft);}
+.detail .addr{font-family:'Special Elite',monospace;font-size:15px;margin-bottom:4px;}
+.detail .cat{display:inline-block;font-size:11px;padding:2px 8px;border-radius:2px;background:var(--parchment-dark);color:var(--ink-soft);margin-bottom:10px;}
+.detail .row{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;border-bottom:1px dotted var(--line);}
+.leaflet-popup-content-wrapper{background:var(--card-bg);color:var(--ink);border-radius:2px;font-family:'IBM Plex Mono',monospace;}
+.leaflet-popup-tip{background:var(--card-bg);}
+.popup-addr{font-family:'Special Elite',monospace;font-size:14px;margin-bottom:4px;}
+.popup-row{font-size:12px;display:flex;justify-content:space-between;gap:10px;padding:2px 0;}
+footer{max-width:1400px;margin:0 auto;padding:0 28px 8vh;color:var(--ink-soft);font-size:12.5px;}
+footer a{color:var(--slate);}
+.statrow{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:5px 0;font-size:12.5px;}
+.statrow .lab{color:var(--ink-soft);}
+.statrow .val{font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker"><span class="disk"></span>CELL-PHONE MOBILITY DATA &mdash; PLACE &amp; STREET DETAIL</div>
+  <h1>Visit Density &amp; Traffic Map</h1>
+  <p>Arizona-Rio Grande subarea, El Paso -- every SafeGraph place polygon colored by how much activity it
+  generates, and every street segment colored by how busy and how vehicle-dominated it already is. See
+  <a href="mobility.html">the mobility findings</a> for the narrative version of this data, and
+  <a href="story.html">the subdistrict story</a> for the zoning proposal these findings support.</p>
+  <p class="back"><a href="mobility.html">&larr; back to mobility &amp; visitation findings</a></p>
+</div>
+
+<div class="section-title">
+  <div class="num">01 / PLACE-LEVEL ACTIVITY</div>
+  <h2>Which buildings are busiest, and which work hardest for their square footage</h2>
+  <p>Each SafeGraph place polygon, colored two ways: raw unique-visit volume, or visits per square foot of
+  building area. Switch tabs to compare -- a place can rank high on one and low on the other.</p>
+</div>
+<div class="wrap">
+  <div class="mapcol"><div id="map-visits"></div></div>
+  <div class="sidebar">
+    <div class="card">
+      <h3>Color by</h3>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" id="btn-visits-total">Total visits</button>
+        <button type="button" class="mode-btn" id="btn-visits-density">Visit density (/ sq ft)</button>
+      </div>
+    </div>
+    <div class="card" id="card-visits-legend">
+      <h3 id="legend-visits-title">Unique visits<span class="note">398 places</span></h3>
+      <div class="legend-grad" id="legend-visits-grad"></div>
+      <div class="legend-grad-labels" id="legend-visits-labels"><span>low</span><span>high</span></div>
+    </div>
+    <div class="card" id="card-visits-detail">
+      <h3>Selected place</h3>
+      <div class="placeholder" id="visits-placeholder">Click a building on the map for its stats.</div>
+      <div class="detail" id="visits-detail" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">
+  <div class="num">02 / STREET-LEVEL TRAFFIC</div>
+  <h2>Where traffic is heaviest, and whether it's walked or driven</h2>
+  <p>Every measured street segment, colored by total movement volume. Filter by mode to see which streets'
+  volume is mostly pedestrian, mostly vehicular, or an even split -- "All" shows total volume regardless of mode.</p>
+</div>
+<div class="wrap">
+  <div class="mapcol"><div id="map-traffic"></div></div>
+  <div class="sidebar">
+    <div class="card">
+      <h3>Mode</h3>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" data-mode="all">All</button>
+        <button type="button" class="mode-btn" data-mode="pedestrian">Pedestrian</button>
+        <button type="button" class="mode-btn" data-mode="vehicular">Vehicular</button>
+      </div>
+    </div>
+    <div class="card" id="card-traffic-legend">
+      <h3 id="legend-traffic-title">Total movements<span class="note">21 streets, 175 segments</span></h3>
+      <div class="legend-grad" id="legend-traffic-grad"></div>
+      <div class="legend-grad-labels" id="legend-traffic-labels"><span>low</span><span>high</span></div>
+    </div>
+    <div class="card" id="card-traffic-detail">
+      <h3>Selected street</h3>
+      <div class="placeholder" id="traffic-placeholder">Click a street on the map for its stats.</div>
+      <div class="detail" id="traffic-detail" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>Source: SafeGraph place polygons and anonymized device-movement data for the Arizona-Rio Grande study
+  polygon, processed with the scripts in <a href="mobility/">/mobility</a> of this repo. Unique visits are
+  unique device-days per place; mode split is derived from device-to-device movement speed and buffered
+  street-centerline proximity (see <a href="mobility/README.md">mobility/README.md</a> for methodology and
+  caveats). See <a href="mobility.html">mobility.html</a> for the narrative findings and
+  <a href="story.html">story.html</a> for the zoning proposal.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const INK = '#2B2420', RUST = '#A6531C', SLATE = '#3D5A6C', HL = '#E2B94B', PARCH_DARK = '#DED5BE';
+const BASEMAP_ATTR = 'Tiles &copy; Esri';
+const BASEMAP_BASE = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+const BASEMAP_REF  = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+
+function makeBaseMap(elId){
+  const map = L.map(elId, {zoomSnap:0.25}).setView([31.76975, -106.4835], 15.6);
+  L.tileLayer(BASEMAP_BASE, {attribution: BASEMAP_ATTR, maxZoom:17}).addTo(map);
+  L.tileLayer(BASEMAP_REF, {maxZoom:17}).addTo(map);
+  return map;
+}
+
+// color ramp: parchment-dark (low) -> hl (mid) -> rust (high), 5 steps
+function rampColor(t){ // t in [0,1]
+  t = Math.max(0, Math.min(1, t));
+  const stops = [
+    {t:0,    c:[222,213,190]}, // parchment-dark
+    {t:0.35, c:[226,185,74]},  // hl
+    {t:0.7,  c:[197,120,45]},  // mid rust
+    {t:1,    c:[166,83,28]}    // rust
+  ];
+  let a = stops[0], b = stops[stops.length-1];
+  for(let i=0;i<stops.length-1;i++){
+    if(t>=stops[i].t && t<=stops[i+1].t){ a=stops[i]; b=stops[i+1]; break; }
+  }
+  const span = (b.t-a.t) || 1;
+  const f = (t-a.t)/span;
+  const c = a.c.map((v,i)=> Math.round(v + (b.c[i]-v)*f));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function drawGradientBar(elId){
+  const el = document.getElementById(elId);
+  let stops = [];
+  for(let i=0;i<=20;i++) stops.push(rampColor(i/20) + ' ' + (i*5) + '%');
+  el.style.background = `linear-gradient(to right, ${stops.join(',')})`;
+}
+drawGradientBar('legend-visits-grad');
+drawGradientBar('legend-traffic-grad');
+
+// quantile scale helper
+function quantileScale(values){
+  const sorted = [...values].sort((a,b)=>a-b);
+  const n = sorted.length;
+  return function(v){
+    // find rank-based percentile, more robust than linear min/max given skew
+    let lo=0, hi=n;
+    while(lo<hi){ const mid=(lo+hi)>>1; if(sorted[mid]<v) lo=mid+1; else hi=mid; }
+    return n<=1 ? 0 : lo/(n-1);
+  };
+}
+
+/* ===================== SECTION 1: PLACE VISIT DENSITY MAP ===================== */
+const mapVisits = makeBaseMap('map-visits');
+let visitsLayer = null;
+let visitsMode = 'total'; // 'total' | 'density'
+let visitsData = null;
+
+fetch('mobility/data/place_visits_joined.geojson').then(r=>r.json()).then(data => {
+  visitsData = data;
+  renderVisitsLayer();
+});
+
+function renderVisitsLayer(){
+  if(!visitsData) return;
+  if(visitsLayer) mapVisits.removeLayer(visitsLayer);
+
+  const field = visitsMode === 'total' ? 'unique_visits' : 'visits_per_sqft';
+  const values = visitsData.features.map(f => f.properties[field]);
+  const scale = quantileScale(values);
+
+  visitsLayer = L.geoJSON(visitsData, {
+    style: feature => {
+      const v = feature.properties[field];
+      return { fillColor: rampColor(scale(v)), fillOpacity: 0.82, color: INK, weight: 0.6 };
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties;
+      layer.bindPopup(
+        `<div class="popup-addr">${p.name || 'Unnamed place'}</div>` +
+        `<div class="popup-row"><span>${p.category || ''}</span></div>` +
+        `<div class="popup-row"><span>Unique visits</span><b>${p.unique_visits.toLocaleString()}</b></div>` +
+        `<div class="popup-row"><span>Visits / day</span><b>${p.visits_per_day.toFixed(2)}</b></div>` +
+        `<div class="popup-row"><span>Visits / sq ft</span><b>${p.visits_per_sqft.toFixed(3)}</b></div>` +
+        `<div class="popup-row"><span>Building sq ft</span><b>${p.sqft ? p.sqft.toLocaleString() : 'n/a'}</b></div>` +
+        `<div class="popup-row"><span>${p.address || ''}</span></div>`
+      );
+      layer.on('click', () => showVisitsDetail(p));
+    }
+  }).addTo(mapVisits);
+
+  // legend title + labels
+  const title = document.getElementById('legend-visits-title');
+  const labels = document.getElementById('legend-visits-labels');
+  if(visitsMode === 'total'){
+    title.innerHTML = 'Unique visits<span class="note">398 places &middot; quantile-scaled color</span>';
+    labels.innerHTML = `<span>${Math.min(...values)}</span><span>${Math.max(...values).toLocaleString()}</span>`;
+  } else {
+    title.innerHTML = 'Visits / sq ft<span class="note">398 places &middot; quantile-scaled color</span>';
+    labels.innerHTML = `<span>${Math.min(...values).toFixed(2)}</span><span>${Math.max(...values).toFixed(2)}</span>`;
+  }
+}
+
+function showVisitsDetail(p){
+  document.getElementById('visits-placeholder').style.display = 'none';
+  const el = document.getElementById('visits-detail');
+  el.style.display = 'block';
+  el.innerHTML =
+    `<div class="addr">${p.name || 'Unnamed place'}</div>` +
+    `<div class="cat">${p.category || ''}</div>` +
+    `<div class="row"><span>Address</span><span>${p.address || 'n/a'}</span></div>` +
+    `<div class="row"><span>Unique visits</span><span>${p.unique_visits.toLocaleString()}</span></div>` +
+    `<div class="row"><span>Days with any visit</span><span>${p.days_with_any_visit.toLocaleString()}</span></div>` +
+    `<div class="row"><span>Visits / day</span><span>${p.visits_per_day.toFixed(2)}</span></div>` +
+    `<div class="row"><span>Building sq ft</span><span>${p.sqft ? p.sqft.toLocaleString() : 'n/a'}</span></div>` +
+    `<div class="row" style="border-bottom:none;"><span>Visits / sq ft</span><span>${p.visits_per_sqft.toFixed(4)}</span></div>`;
+}
+
+document.getElementById('btn-visits-total').addEventListener('click', e => {
+  visitsMode = 'total';
+  document.querySelectorAll('#card-visits-legend').forEach(()=>{});
+  e.target.classList.add('active');
+  document.getElementById('btn-visits-density').classList.remove('active');
+  renderVisitsLayer();
+});
+document.getElementById('btn-visits-density').addEventListener('click', e => {
+  visitsMode = 'density';
+  e.target.classList.add('active');
+  document.getElementById('btn-visits-total').classList.remove('active');
+  renderVisitsLayer();
+});
+
+/* ===================== SECTION 2: STREET TRAFFIC MAP ===================== */
+const mapTraffic = makeBaseMap('map-traffic');
+let trafficLayer = null;
+let trafficMode = 'all'; // 'all' | 'pedestrian' | 'vehicular'
+let trafficData = null;
+
+fetch('mobility/data/street_traffic_joined.geojson').then(r=>r.json()).then(data => {
+  trafficData = data;
+  renderTrafficLayer();
+});
+
+function trafficValue(p, mode){
+  if(mode === 'pedestrian') return p.pedestrian;
+  if(mode === 'vehicular') return p.vehicular;
+  return p.total_segments; // all
+}
+
+function renderTrafficLayer(){
+  if(!trafficData) return;
+  if(trafficLayer) mapTraffic.removeLayer(trafficLayer);
+
+  const values = trafficData.features.map(f => trafficValue(f.properties, trafficMode));
+  const scale = quantileScale(values);
+
+  trafficLayer = L.geoJSON(trafficData, {
+    style: feature => {
+      const v = trafficValue(feature.properties, trafficMode);
+      const t = scale(v);
+      return { color: rampColor(t), weight: 3 + t*6, opacity: 0.9 };
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties;
+      layer.bindPopup(
+        `<div class="popup-addr">${p.STREETNAME}</div>` +
+        `<div class="popup-row"><span>Pedestrian</span><b>${p.pedestrian.toLocaleString()} (${p.pct_pedestrian}%)</b></div>` +
+        `<div class="popup-row"><span>Vehicular</span><b>${p.vehicular.toLocaleString()} (${p.pct_vehicular}%)</b></div>` +
+        `<div class="popup-row"><span>Total movements</span><b>${p.total_segments.toLocaleString()}</b></div>`
+      );
+      layer.on('click', () => showTrafficDetail(p));
+      layer.on('mouseover', () => layer.setStyle({weight: (3 + scale(trafficValue(p,trafficMode))*6) + 2}));
+      layer.on('mouseout', () => layer.setStyle({weight: 3 + scale(trafficValue(p,trafficMode))*6}));
+    }
+  }).addTo(mapTraffic);
+
+  const title = document.getElementById('legend-traffic-title');
+  const labels = document.getElementById('legend-traffic-labels');
+  const modeLabel = trafficMode === 'all' ? 'Total movements' : (trafficMode === 'pedestrian' ? 'Pedestrian movements' : 'Vehicular movements');
+  title.innerHTML = `${modeLabel}<span class="note">21 streets &middot; 175 segments &middot; line weight + color both scale with volume</span>`;
+  labels.innerHTML = `<span>${Math.min(...values).toLocaleString()}</span><span>${Math.max(...values).toLocaleString()}</span>`;
+}
+
+function showTrafficDetail(p){
+  document.getElementById('traffic-placeholder').style.display = 'none';
+  const el = document.getElementById('traffic-detail');
+  el.style.display = 'block';
+  el.innerHTML =
+    `<div class="addr">${p.STREETNAME}</div>` +
+    `<div class="statrow"><span class="lab">Pedestrian movements</span><span class="val">${p.pedestrian.toLocaleString()} (${p.pct_pedestrian}%)</span></div>` +
+    `<div class="statrow"><span class="lab">Vehicular movements</span><span class="val">${p.vehicular.toLocaleString()} (${p.pct_vehicular}%)</span></div>` +
+    `<div class="statrow" style="border-bottom:none;"><span class="lab">Total movements</span><span class="val">${p.total_segments.toLocaleString()}</span></div>`;
+}
+
+document.querySelectorAll('#card-traffic-legend ~ .card, .mode-toggle [data-mode]').forEach(()=>{});
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    trafficMode = e.target.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    renderTrafficLayer();
+  });
+});
+</script>
+
+</body>
+</html>
