@@ -42,6 +42,7 @@ iframe.active{display:block;}
   <div class="tabs">
     <div class="tab active" data-tab="story">The Story &amp; Proposed Subdistricts</div>
     <div class="tab" data-tab="landuse">Existing Land Use</div>
+    <div class="tab" data-tab="mobility">Mobility &amp; Visitation</div>
     <div class="tab" data-tab="builder">Build Your Own District</div>
   </div>
   <div class="openlink" id="openlink">Open <a id="open-direct" href="story.html" target="_blank">story.html</a> directly in a new tab</div>
@@ -50,14 +51,15 @@ iframe.active{display:block;}
   <div class="loading" id="loading">Loading…</div>
   <iframe id="frame-story" class="active" src="story.html"></iframe>
   <iframe id="frame-landuse"></iframe>
+  <iframe id="frame-mobility"></iframe>
   <iframe id="frame-builder"></iframe>
 </main>
 <script>
 const tabs = document.querySelectorAll('.tab');
-const frames = {story: document.getElementById('frame-story'), landuse: document.getElementById('frame-landuse'), builder: document.getElementById('frame-builder')};
+const frames = {story: document.getElementById('frame-story'), landuse: document.getElementById('frame-landuse'), mobility: document.getElementById('frame-mobility'), builder: document.getElementById('frame-builder')};
 const openDirect = document.getElementById('open-direct');
 const loading = document.getElementById('loading');
-const loadedFrames = {story: true, landuse: false, builder: false};
+const loaded = {story: true, landuse: false, mobility: false, builder: false};
 
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
@@ -65,11 +67,11 @@ tabs.forEach(tab => {
     tabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     Object.values(frames).forEach(f => f.classList.remove('active'));
-    if(!loadedFrames[key]){
+    if(!loaded[key]){
       loading.style.display = 'flex';
       frames[key].src = key + '.html';
       frames[key].addEventListener('load', () => { loading.style.display = 'none'; }, {once:true});
-      loadedFrames[key] = true;
+      loaded[key] = true;
     }
     frames[key].classList.add('active');
     openDirect.href = key + '.html';

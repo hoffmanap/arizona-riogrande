@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five Points -- Mobility &amp; Visitation Patterns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+:root{
+  --parchment:#EAE3D2; --parchment-dark:#DED5BE; --ink:#2B2420; --ink-soft:#54493d;
+  --rust:#A6531C; --slate:#3D5A6C; --line:#c9bea3; --card-bg:#F4EFE2; --hl:#E2B94B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--parchment);color:var(--ink);font-family:'IBM Plex Mono',monospace;line-height:1.55;}
+h1,h2,h3{font-family:'Special Elite',monospace;font-weight:400;letter-spacing:.5px;}
+a{color:var(--rust);}
+.masthead{max-width:980px;margin:0 auto;padding:6vh 28px 4vh;border-bottom:2px solid var(--ink);}
+.masthead .kicker{font-size:13px;color:var(--ink-soft);margin-bottom:14px;display:flex;gap:10px;align-items:center;}
+.masthead .kicker .disk{width:9px;height:9px;border-radius:50%;background:var(--rust);box-shadow:0 0 0 3px rgba(166,83,28,.18);display:inline-block;}
+.masthead h1{font-size:34px;margin:0 0 10px;}
+.masthead p{max-width:760px;color:var(--ink-soft);font-size:14.5px;}
+.back{font-size:12.5px;}
+.wrap{max-width:1100px;margin:0 auto;padding:4vh 28px 10vh;}
+.section{margin-bottom:56px;}
+.section .num{display:inline-block;font-family:'Special Elite',monospace;color:var(--rust);font-size:13px;margin-bottom:4px;}
+.section h2{font-size:24px;margin:0 0 6px;}
+.section .lede{color:var(--ink-soft);font-size:14px;max-width:760px;margin-bottom:18px;}
+.finding{background:var(--card-bg);border-left:4px solid var(--rust);padding:12px 16px;margin:16px 0;font-size:14px;}
+.finding b{color:var(--rust);}
+.grid2{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+.card{background:var(--card-bg);border:1px solid var(--line);padding:16px 18px;flex:1 1 420px;min-width:280px;}
+.card h3{margin:0 0 10px;font-size:15px;}
+.statrow{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:6px 0;font-size:13px;}
+.statrow .lab{color:var(--ink-soft);}
+.statrow .val{font-weight:600;}
+.chartbox{position:relative;height:280px;}
+.chartbox.tall{height:360px;}
+.chartbox.wide{height:320px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+table th{text-align:left;color:var(--ink-soft);font-weight:500;border-bottom:1px solid var(--ink);padding:6px 8px;}
+table td{padding:6px 8px;border-bottom:1px dotted var(--line);}
+table tr:hover td{background:var(--parchment-dark);}
+.bar{height:7px;background:var(--rust);display:inline-block;vertical-align:middle;}
+.bar.ped{background:var(--slate);}
+.pill{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:2px;background:var(--parchment-dark);color:var(--ink-soft);margin-left:6px;}
+.pill.hot{background:var(--rust);color:#F4EFE2;}
+footer{max-width:980px;margin:0 auto;padding:0 28px 8vh;color:var(--ink-soft);font-size:12.5px;}
+footer a{color:var(--slate);}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker"><span class="disk"></span>CELL-PHONE MOBILITY DATA &mdash; GROUNDING THE RECOMMENDATIONS</div>
+  <h1>Mobility &amp; Visitation Patterns</h1>
+  <p>Five Points / Sunset Heights subarea, El Paso -- anonymized device-location data (SafeGraph /
+  Ubermedia-style panel, ~1,100 devices, dwell-time and pathing observations across the subarea) used to
+  test three questions: is commercial activity here serving the neighborhood or pulling from a wider
+  region; which streets actually carry the foot traffic that could support more commercial use; and which
+  streets are already vehicle-dominated enough that limiting them to single-family makes little sense.
+  See <a href="story.html">the subdistrict story</a> and the <a href="landuse.html">existing land-use map</a>
+  for the zoning side of this argument.</p>
+  <p class="back"><a href="story.html">&larr; back to the subdistrict story</a></p>
+</div>
+
+<div class="wrap">
+
+  <!-- SECTION 1: LOCAL VS REGIONAL DRAW -->
+  <div class="section">
+    <div class="num">01 / LOCAL VS. REGIONAL DRAW</div>
+    <h2>Who is this corridor actually serving?</h2>
+    <p class="lede">For every device that visited the subarea, its home and work locations were matched
+    against distance bands from the corridor. This tells us whether retail and services here are
+    neighborhood-serving or pulling from across the metro.</p>
+    <div class="finding"><b>52% of visits come from within 3 miles</b> -- home-location and work-location
+    bands land within a point of each other, so this isn't commuters passing through on their way
+    somewhere else. The corridor is overwhelmingly a <b>neighborhood-serving</b> draw, which argues for
+    zoning that permits small-format, walkable commercial uses (personal services, food, small retail)
+    rather than planning for regional-draw anchors that need highway visibility and large parking fields.</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Distance from visitor's home (CEL)</h3>
+        <div class="chartbox"><canvas id="chart-draw-home"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Distance from visitor's work (CDL)</h3>
+        <div class="chartbox"><canvas id="chart-draw-work"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3>Who's coming -- resident / worker overlap <span class="pill">1,123 devices matched</span></h3>
+      <div class="statrow"><span class="lab">Lives in or near the subarea (resident)</span><span class="val">618 &middot; 55%</span></div>
+      <div class="statrow"><span class="lab">Works in or near the subarea (worker)</span><span class="val">537 &middot; 48%</span></div>
+      <div class="statrow"><span class="lab">Both lives AND works here</span><span class="val">32 &middot; 2.8%</span></div>
+      <div class="statrow" style="border-bottom:none;"><span class="lab">Neither flag (pass-through / visiting)</span><span class="val">~40%</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: DWELL TIME -->
+  <div class="section">
+    <div class="num">02 / DWELL TIME</div>
+    <h2>People linger here -- this isn't a drive-through corridor</h2>
+    <p class="lede">Dwell time measures how long a device stayed once it arrived, split into the time
+    spent at its most-visited stop ("inner") vs. anywhere else in the subarea ("outer"), across 5,247
+    measured visits.</p>
+    <div class="finding"><b>Median dwell time is 25 minutes</b>, and <b>32% of visits run an hour or
+    longer</b> (hairdressers, legal/medical appointments, restaurants, the furniture store). A corridor
+    where a third of visits last an hour-plus is doing destination business, not just capturing
+    pass-by traffic -- another argument for protecting and expanding small-format commercial rather than
+    treating these blocks as a pure drive corridor.</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Dwell-time distribution (avg per visit)</h3>
+        <div class="chartbox"><canvas id="chart-dwell"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>At a glance <span class="pill">5,247 measured visits</span></h3>
+        <div class="statrow"><span class="lab">Median dwell, all visits</span><span class="val">24.9 min</span></div>
+        <div class="statrow"><span class="lab">Mean dwell, all visits</span><span class="val">53.6 min</span></div>
+        <div class="statrow"><span class="lab">Median dwell at primary stop ("inner")</span><span class="val">21.8 min</span></div>
+        <div class="statrow"><span class="lab">Median dwell elsewhere in subarea ("outer")</span><span class="val">28.2 min</span></div>
+        <div class="statrow" style="border-bottom:none;"><span class="lab">Visits lingering 1 hr+</span><span class="val">1,674 &middot; 31.9%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: STREET MODE SPLIT -->
+  <div class="section">
+    <div class="num">03 / STREET-LEVEL MODE SPLIT</div>
+    <h2>Which streets are already walked, and which are already driven</h2>
+    <p class="lede">Every device movement inside the subarea was classified as pedestrian or vehicular by
+    speed, then assigned to the nearest street. This tells us where foot traffic already exists (so
+    commercial uses there have a built-in customer base) and where traffic is already heavily vehicular
+    (so planning those blocks around single-family makes little sense regardless of zoning history).</p>
+    <div class="finding"><b>Missouri is both the single busiest street in the subarea and the most
+    vehicular</b> -- 23,655 measured segments, 64% of them vehicular. <b>Yandell, Lee, Newman, and
+    Octavia are majority-pedestrian</b> and well-suited to walkable, small-format retail. Missouri's
+    volume alone makes it a poor candidate for single-family-only zoning: whatever the historic zoning
+    says, the ground truth is a busy, car-dominated corridor that should permit (and may already have)
+    commercial uses with real transportation planning, not a residential street that happens to carry
+    15,000+ vehicle movements.</div>
+    <div class="card">
+      <h3>Pedestrian vs. vehicular share, by street (ranked by total volume)</h3>
+      <div class="chartbox tall"><canvas id="chart-mode"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: DAY OF WEEK -->
+  <div class="section">
+    <div class="num">04 / WHEN STREETS ARE BUSY</div>
+    <h2>Missouri's pattern is commuter-shaped, not weekend-leisure</h2>
+    <p class="lede">The same classified movements, totaled by day of week for the five busiest streets.
+    A weekday-peaking pattern reads as commuting and errands; a weekend-peaking pattern reads as leisure
+    and discretionary retail trips -- useful for deciding what kind of commercial mix fits each street.</p>
+    <div class="finding">Missouri peaks midweek (Wed/Thu) and dips hardest on Sunday -- a <b>commuter and
+    errand-running pattern</b> consistent with its vehicular majority above, which favors uses that serve
+    people already moving through (quick service, auto-related, professional offices) over destination
+    leisure retail. Yandell and Wyoming hold steadier totals across the whole week, including weekends --
+    more consistent with neighborhood-serving, walk-up commercial.</div>
+    <div class="card">
+      <h3>Total street activity by day of week -- five busiest streets</h3>
+      <div class="chartbox wide"><canvas id="chart-dow"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: PLACE VISIT DENSITY -->
+  <div class="section">
+    <div class="num">05 / PLACE-LEVEL VISIT DENSITY</div>
+    <h2>Which buildings are working hardest for their square footage</h2>
+    <p class="lede">Each device ping was assigned to the specific SafeGraph place polygon it fell inside,
+    then counted as a unique visit (one device, one day). Visits per square foot of building area shows
+    which uses are generating the most activity relative to their footprint -- the uses worth protecting
+    and replicating as the corridor is rezoned.</p>
+    <div class="finding">By raw volume, the corridor's two busiest addresses are <b>1025/1021 E Missouri
+    Ave</b> (American Furniture Outlet &amp; Glamour Cult Salon, sharing one building -- 5,855 unique
+    visits, nearly 10/day). By <b>density</b> (visits per square foot), small professional-service and
+    live/work buildings outperform everything else -- <b>legal services and physicians' offices alone
+    account for over 60,000 of the subarea's measured unique visits</b> across just 132 places, more than
+    any other use category, while occupying a comparatively small footprint. That's the strongest
+    evidence in this dataset for protecting and expanding small-office and personal-service uses
+    alongside retail, not just planning around a handful of larger commercial anchors.</div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Highest-density places (unique visits / sq ft)</h3>
+        <table>
+          <tr><th>Place</th><th>Category</th><th>Address</th><th>Visits/sqft</th></tr>
+          <tr><td>Condos at 1526 Yandell Dr</td><td>Lessors of Real Estate</td><td>1526 E Yandell Dr</td><td>1.339</td></tr>
+          <tr><td>Tres Vistas</td><td>Lessors of Real Estate</td><td>1600 Arizona Ave</td><td>0.944</td></tr>
+          <tr><td>Risen Tattoo Supplies</td><td>Technical/Trade Schools</td><td>1207 Brown St</td><td>0.732</td></tr>
+          <tr><td>Brown Street Market</td><td>Grocery Stores</td><td>1207 Brown St</td><td>0.713</td></tr>
+          <tr><td>Farah Law</td><td>Legal Services</td><td>1231 E Missouri Ave</td><td>0.658</td></tr>
+          <tr><td>TaxSmart / Law Office of Hernandez</td><td>Accounting / Legal Services</td><td>1219 E Missouri Ave</td><td>0.654</td></tr>
+          <tr><td>American Furniture Outlet</td><td>Furniture Stores</td><td>1025 E Missouri Ave</td><td>0.450</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Unique visits by use category -- top 10</h3>
+        <div class="chartbox tall"><canvas id="chart-category"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: SYNTHESIS -->
+  <div class="section">
+    <div class="num">06 / WHAT THIS MEANS FOR THE REZONING</div>
+    <h2>Three findings, three zoning implications</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>Scale the use mix to a local draw</h3>
+        <p style="font-size:13px;color:var(--ink-soft);">52% local, &lt;3% pure commuters passing through.
+        Plan for neighborhood-serving small retail, personal services, and food &mdash; not regional
+        anchors needing highway visibility or large parking fields.</p>
+      </div>
+      <div class="card">
+        <h3>Match commercial allowances to where feet already are</h3>
+        <p style="font-size:13px;color:var(--ink-soft);">Yandell, Lee, Newman, and Octavia are
+        majority-pedestrian today. Commercial-use allowances on these streets build on an existing
+        pedestrian base rather than creating one from scratch.</p>
+      </div>
+      <div class="card">
+        <h3>Don't zone a vehicular corridor as single-family</h3>
+        <p style="font-size:13px;color:var(--ink-soft);">Missouri carries more measured traffic than any
+        other street in the subarea and is majority-vehicular with a commuter-shaped weekly pattern.
+        Whatever the historic zoning says, the ground truth argues for uses built around that traffic,
+        not single-family lots facing a de facto arterial.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Source: anonymized cell-phone device-location panel data (SafeGraph/Ubermedia-style dwell-time,
+  resident/worker, home/work distance, pin, and pathing reports) for the Five Points / Sunset Heights
+  study polygon, processed with the scripts in <a href="mobility/">/mobility</a> of this repo. Visit
+  counts are unique device-days; mode split and street assignment are derived from device-to-device
+  movement speed and buffered street-centerline proximity (see <a href="mobility/README.md">mobility/README.md</a>
+  for full methodology and caveats). This page summarizes mobility-data outputs only -- see
+  <a href="story.html">story.html</a> for the zoning proposal these findings support and
+  <a href="landuse.html">landuse.html</a> for current land use.</p>
+</footer>
+
+<script>
+const INK = '#2B2420', INK_SOFT = '#54493d', RUST = '#A6531C', SLATE = '#3D5A6C', HL = '#E2B94B', LINE='#c9bea3';
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = INK_SOFT;
+
+function baseOpts(extra) {
+  return Object.assign({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: INK_SOFT } } },
+    scales: {
+      x: { grid: { color: LINE }, ticks: { color: INK_SOFT } },
+      y: { grid: { color: LINE }, ticks: { color: INK_SOFT } }
+    }
+  }, extra || {});
+}
+
+// --- Section 1: local/regional draw ---
+const drawLabels = ['Local\n(<3 mi)','Citywide\n(3-10 mi)','Regional\n(10-25 mi)','Distant\n(>25 mi)'];
+new Chart(document.getElementById('chart-draw-home'), {
+  type: 'doughnut',
+  data: { labels: ['Local (<3 mi)','Citywide (3-10 mi)','Regional metro (10-25 mi)','Distant (>25 mi)'],
+    datasets: [{ data: [52.2, 22.7, 16.8, 8.3], backgroundColor: [RUST, HL, SLATE, LINE], borderColor:'#F4EFE2', borderWidth:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{size:11} } } } }
+});
+new Chart(document.getElementById('chart-draw-work'), {
+  type: 'doughnut',
+  data: { labels: ['Local (<3 mi)','Citywide (3-10 mi)','Regional metro (10-25 mi)','Distant (>25 mi)'],
+    datasets: [{ data: [52.0, 24.5, 14.6, 8.8], backgroundColor: [RUST, HL, SLATE, LINE], borderColor:'#F4EFE2', borderWidth:2 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{size:11} } } } }
+});
+
+// --- Section 2: dwell time ---
+new Chart(document.getElementById('chart-dwell'), {
+  type: 'bar',
+  data: {
+    labels: ['<5 min','5-15 min','15-30 min','30-60 min','1-2 hr','2+ hr'],
+    datasets: [{ label:'Visits', data:[1015,879,809,870,862,812], backgroundColor: RUST }]
+  },
+  options: baseOpts({ plugins:{ legend:{ display:false } } })
+});
+
+// --- Section 3: street mode split ---
+const streetMode = [
+  ['MISSOURI',36.0,64.0],['YANDELL',59.6,40.4],['MONTANA',48.0,52.0],['WYOMING',50.6,49.4],
+  ['RIO GRANDE',52.3,47.7],['ANGE',50.1,49.9],['BROWN',46.5,53.5],['OCTAVIA',55.4,44.6],
+  ['ARIZONA',49.1,50.9],['DALLAS',49.4,50.6],['NOBLE',49.2,50.8],['NEWMAN',57.2,42.8],
+  ['LEE',62.3,37.7],['LANGTRY',54.9,45.1],['NEVADA',54.1,45.9],['CALIFORNIA',31.1,68.9],
+  ['RIVER',36.5,63.5],['CLIFF',22.5,77.5],['GOLDEN HILL TERRACE',36.5,63.5],['CIRCLE',26.3,73.7],['WRIGHT',31.7,68.3]
+];
+new Chart(document.getElementById('chart-mode'), {
+  type: 'bar',
+  data: {
+    labels: streetMode.map(r=>r[0]),
+    datasets: [
+      { label:'% Pedestrian', data: streetMode.map(r=>r[1]), backgroundColor: SLATE, stack:'s' },
+      { label:'% Vehicular', data: streetMode.map(r=>r[2]), backgroundColor: RUST, stack:'s' }
+    ]
+  },
+  options: baseOpts({
+    indexAxis: 'y',
+    plugins:{ legend:{ position:'top', labels:{boxWidth:12} } },
+    scales:{ x:{ stacked:true, max:100, grid:{color:LINE}, ticks:{color:INK_SOFT, callback:v=>v+'%'} }, y:{ stacked:true, grid:{display:false}, ticks:{color:INK_SOFT, font:{size:11}} } }
+  })
+});
+
+// --- Section 4: day of week, top 5 streets ---
+const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const dowData = {
+  'MISSOURI': [3239,3185,4227,4137,3100,3240,2527],
+  'YANDELL':  [2920,2955,2921,2852,3046,2937,2349],
+  'MONTANA':  [2526,3359,3165,2886,2562,2196,2297],
+  'WYOMING':  [2309,2300,2525,2747,2484,2934,2434],
+  'RIO GRANDE':[2139,2365,2475,2293,2523,2296,2302]
+};
+new Chart(document.getElementById('chart-dow'), {
+  type: 'line',
+  data: {
+    labels: dow,
+    datasets: [
+      { label:'Missouri', data: dowData['MISSOURI'], borderColor: RUST, backgroundColor: RUST, tension:.3 },
+      { label:'Yandell', data: dowData['YANDELL'], borderColor: SLATE, backgroundColor: SLATE, tension:.3 },
+      { label:'Montana', data: dowData['MONTANA'], borderColor: HL, backgroundColor: HL, tension:.3 },
+      { label:'Wyoming', data: dowData['WYOMING'], borderColor: INK, backgroundColor: INK, tension:.3 },
+      { label:'Rio Grande', data: dowData['RIO GRANDE'], borderColor: '#8a7a5c', backgroundColor:'#8a7a5c', tension:.3 }
+    ]
+  },
+  options: baseOpts({ plugins:{ legend:{ position:'top', labels:{boxWidth:12} } } })
+});
+
+// --- Section 5: category totals ---
+const cats = [
+  ['Offices of Physicians',30640],['Legal Services',30400],['Lessors of Real Estate',20129],
+  ['Offices of Other Health Practitioners',15785],['Personal Care Services',9583],
+  ['Accounting / Tax / Payroll',7783],['Automotive Repair',7241],['Drinking Places (Alcoholic Bev.)',6426],
+  ['Furniture Stores',5855],['Specialty Trade Contractors',5663]
+];
+new Chart(document.getElementById('chart-category'), {
+  type: 'bar',
+  data: { labels: cats.map(c=>c[0]), datasets: [{ label:'Unique visits', data: cats.map(c=>c[1]), backgroundColor: RUST }] },
+  options: baseOpts({ indexAxis:'y', plugins:{ legend:{ display:false } }, scales:{ x:{grid:{color:LINE}}, y:{grid:{display:false}, ticks:{font:{size:11}}} } })
+});
+</script>
+
+</body>
+</html>
