@@ -151,17 +151,20 @@ footer a{color:var(--slate);}
       </div>
     </div>
     <div class="card">
-      <h3>Trip origin <span class="note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">not available yet -- see note below</span></h3>
-      <div class="mode-toggle">
-        <button type="button" class="mode-btn active" disabled style="opacity:.55;cursor:not-allowed;">All trips</button>
-        <button type="button" class="mode-btn" disabled style="opacity:.4;cursor:not-allowed;">Local only</button>
-        <button type="button" class="mode-btn" disabled style="opacity:.4;cursor:not-allowed;">Pass-through only</button>
+      <h3>Trip origin <span class="note" id="origin-note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">x-axis becomes segments with a resolved home location only</span></h3>
+      <div class="mode-toggle" id="quad-origin-toggle">
+        <button type="button" class="mode-btn active" data-origin="all">All movement</button>
+        <button type="button" class="mode-btn" data-origin="local">Local (resolved)</button>
+        <button type="button" class="mode-btn" data-origin="distant">Distant (resolved)</button>
       </div>
-      <p style="font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;">Splitting traffic into local-origin
-      vs. pass-through requires joining device home-distance to street-level movement, which isn't in any
-      file committed to this repo yet -- <code>mobility/scripts/street_traffic_origin.py</code> computes it
-      from the raw pathing_x_report + resident_worker_report. Run it and send back
-      <code>street_traffic_origin.csv</code> to light this toggle up with real data.</p>
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;" id="origin-caveat">Of all measured movement
+      on these streets, a device's home location could only be resolved for <b>5-16%</b> of segments (the rest
+      -- 84-99% depending on the street -- is labeled "unresolved" in <code>street_traffic_origin.csv</code>,
+      not "pass-through"; SafeGraph simply couldn't match that device to a home). Among segments that WERE
+      resolved, the large majority are local (63-100% depending on the street) and very few are from &gt;3 miles
+      away -- so this subarea sees almost no confirmed regional pass-through traffic, but most trips remain of
+      unknown origin. "Local" and "Distant" below use only the resolved segments, scaled down accordingly -- treat
+      them as a sample, not full volume.</p>
     </div>
     <div class="card">
       <h3>Y-axis</h3>
@@ -409,6 +412,19 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
 /* ===================== SECTION 3: QUADRANT TOOL ===================== */
 const quadData = [{"street": "ANGE", "total": 10926, "pedestrian": 5472, "vehicular": 5454, "n_places": 1, "total_visits": 218, "avg_visits_per_place": 218.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 218, "n": 1}}}, {"street": "ARIZONA", "total": 8527, "pedestrian": 4187, "vehicular": 4340, "n_places": 15, "total_visits": 6430, "avg_visits_per_place": 428.7, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 1087, "n": 2}, "Lessors of Real Estate": {"visits": 2020, "n": 2}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 3323, "n": 11}}}, {"street": "BROWN", "total": 10653, "pedestrian": 4954, "vehicular": 5699, "n_places": 5, "total_visits": 3572, "avg_visits_per_place": 714.4, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 1397, "n": 3}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 2175, "n": 2}}}, {"street": "CALIFORNIA", "total": 942, "pedestrian": 293, "vehicular": 649, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "CIRCLE", "total": 243, "pedestrian": 64, "vehicular": 179, "n_places": 1, "total_visits": 1, "avg_visits_per_place": 1.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1, "n": 1}}}, {"street": "CLIFF", "total": 448, "pedestrian": 101, "vehicular": 347, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "DALLAS", "total": 8209, "pedestrian": 4052, "vehicular": 4157, "n_places": 5, "total_visits": 3465, "avg_visits_per_place": 693.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 2412, "n": 2}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 331, "n": 1}, "Other": {"visits": 722, "n": 2}}}, {"street": "GOLDEN HILL TERRACE", "total": 342, "pedestrian": 125, "vehicular": 217, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "LANGTRY", "total": 4365, "pedestrian": 2397, "vehicular": 1968, "n_places": 3, "total_visits": 1606, "avg_visits_per_place": 535.3, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1606, "n": 3}}}, {"street": "LEE", "total": 5529, "pedestrian": 3445, "vehicular": 2084, "n_places": 3, "total_visits": 476, "avg_visits_per_place": 158.7, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 476, "n": 3}}}, {"street": "MISSOURI", "total": 23655, "pedestrian": 8508, "vehicular": 15147, "n_places": 26, "total_visits": 36660, "avg_visits_per_place": 1410.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 6573, "n": 8}, "Lessors of Real Estate": {"visits": 2196, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 5855, "n": 1}, "Other": {"visits": 22036, "n": 16}}}, {"street": "MONTANA", "total": 18991, "pedestrian": 9114, "vehicular": 9877, "n_places": 207, "total_visits": 103972, "avg_visits_per_place": 502.3, "categories": {"Offices of Physicians": {"visits": 25229, "n": 54}, "Legal Services": {"visits": 17196, "n": 39}, "Lessors of Real Estate": {"visits": 698, "n": 2}, "Offices of Other Health Practitioners": {"visits": 11673, "n": 25}, "Personal Care Services": {"visits": 1355, "n": 6}, "Other": {"visits": 47821, "n": 81}}}, {"street": "NEVADA", "total": 3145, "pedestrian": 1700, "vehicular": 1445, "n_places": 2, "total_visits": 1830, "avg_visits_per_place": 915.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 1301, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 529, "n": 1}}}, {"street": "NEWMAN", "total": 5675, "pedestrian": 3246, "vehicular": 2429, "n_places": 7, "total_visits": 2227, "avg_visits_per_place": 318.1, "categories": {"Offices of Physicians": {"visits": 320, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 586, "n": 1}, "Offices of Other Health Practitioners": {"visits": 320, "n": 1}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1001, "n": 4}}}, {"street": "NOBLE", "total": 7626, "pedestrian": 3751, "vehicular": 3875, "n_places": 12, "total_visits": 1347, "avg_visits_per_place": 112.2, "categories": {"Offices of Physicians": {"visits": 32, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 98, "n": 1}, "Offices of Other Health Practitioners": {"visits": 64, "n": 2}, "Personal Care Services": {"visits": 32, "n": 1}, "Other": {"visits": 1121, "n": 7}}}, {"street": "OCTAVIA", "total": 8636, "pedestrian": 4784, "vehicular": 3852, "n_places": 2, "total_visits": 929, "avg_visits_per_place": 464.5, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 929, "n": 2}}}, {"street": "RIO GRANDE", "total": 16393, "pedestrian": 8570, "vehicular": 7823, "n_places": 23, "total_visits": 15232, "avg_visits_per_place": 662.3, "categories": {"Offices of Physicians": {"visits": 1276, "n": 2}, "Legal Services": {"visits": 3120, "n": 6}, "Lessors of Real Estate": {"visits": 5490, "n": 4}, "Offices of Other Health Practitioners": {"visits": 2195, "n": 3}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 3151, "n": 8}}}, {"street": "RIVER", "total": 883, "pedestrian": 322, "vehicular": 561, "n_places": 4, "total_visits": 254, "avg_visits_per_place": 63.5, "categories": {"Offices of Physicians": {"visits": 40, "n": 2}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 214, "n": 2}}}, {"street": "WRIGHT", "total": 139, "pedestrian": 44, "vehicular": 95, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "WYOMING", "total": 17733, "pedestrian": 8973, "vehicular": 8760, "n_places": 27, "total_visits": 16367, "avg_visits_per_place": 606.2, "categories": {"Offices of Physicians": {"visits": 114, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 385, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 15868, "n": 25}}}, {"street": "YANDELL", "total": 19980, "pedestrian": 11914, "vehicular": 8066, "n_places": 55, "total_visits": 29405, "avg_visits_per_place": 534.6, "categories": {"Offices of Physicians": {"visits": 3629, "n": 8}, "Legal Services": {"visits": 2424, "n": 8}, "Lessors of Real Estate": {"visits": 3546, "n": 3}, "Offices of Other Health Practitioners": {"visits": 1533, "n": 3}, "Personal Care Services": {"visits": 2010, "n": 3}, "Other": {"visits": 16263, "n": 30}}}];
 const withPlaces3 = quadData.filter(d => d.n_places > 0);
+
+// Real street_traffic_origin.csv, aggregated per street: local/distant/unresolved segment counts,
+// split by mode. "unresolved" = device not matched to a home record at all (not a classification of
+// distance -- SafeGraph just couldn't resolve it), kept separate from local/distant throughout.
+const originData = {"ANGE": {"local": 941, "distant": 76, "unresolved": 18115, "resolved": 1017, "total": 19132, "localPedestrian": 580, "distantPedestrian": 22, "localVehicular": 361, "distantVehicular": 54, "pctUnresolved": 94.7, "pctLocalOfResolved": 92.5}, "ARIZONA": {"local": 526, "distant": 8, "unresolved": 15236, "resolved": 534, "total": 15770, "localPedestrian": 311, "distantPedestrian": 5, "localVehicular": 215, "distantVehicular": 3, "pctUnresolved": 96.6, "pctLocalOfResolved": 98.5}, "BROWN": {"local": 1027, "distant": 89, "unresolved": 19352, "resolved": 1116, "total": 20468, "localPedestrian": 625, "distantPedestrian": 46, "localVehicular": 402, "distantVehicular": 43, "pctUnresolved": 94.5, "pctLocalOfResolved": 92.0}, "CALIFORNIA": {"local": 31, "distant": 0, "unresolved": 1916, "resolved": 31, "total": 1947, "localPedestrian": 12, "distantPedestrian": 0, "localVehicular": 19, "distantVehicular": 0, "pctUnresolved": 98.4, "pctLocalOfResolved": 100.0}, "CIRCLE": {"local": 36, "distant": 0, "unresolved": 341, "resolved": 36, "total": 377, "localPedestrian": 17, "distantPedestrian": 0, "localVehicular": 19, "distantVehicular": 0, "pctUnresolved": 90.5, "pctLocalOfResolved": 100.0}, "CLIFF": {"local": 7, "distant": 4, "unresolved": 724, "resolved": 11, "total": 735, "localPedestrian": 2, "distantPedestrian": 2, "localVehicular": 5, "distantVehicular": 2, "pctUnresolved": 98.5, "pctLocalOfResolved": 63.6}, "DALLAS": {"local": 717, "distant": 135, "unresolved": 13677, "resolved": 852, "total": 14529, "localPedestrian": 440, "distantPedestrian": 58, "localVehicular": 277, "distantVehicular": 77, "pctUnresolved": 94.1, "pctLocalOfResolved": 84.2}, "GOLDEN HILL TERRACE": {"local": 10, "distant": 0, "unresolved": 544, "resolved": 10, "total": 554, "localPedestrian": 3, "distantPedestrian": 0, "localVehicular": 7, "distantVehicular": 0, "pctUnresolved": 98.2, "pctLocalOfResolved": 100.0}, "LANGTRY": {"local": 784, "distant": 22, "unresolved": 7781, "resolved": 806, "total": 8587, "localPedestrian": 470, "distantPedestrian": 9, "localVehicular": 314, "distantVehicular": 13, "pctUnresolved": 90.6, "pctLocalOfResolved": 97.3}, "LEE": {"local": 630, "distant": 105, "unresolved": 8260, "resolved": 735, "total": 8995, "localPedestrian": 418, "distantPedestrian": 62, "localVehicular": 212, "distantVehicular": 43, "pctUnresolved": 91.8, "pctLocalOfResolved": 85.7}, "MISSOURI": {"local": 2563, "distant": 421, "unresolved": 45832, "resolved": 2984, "total": 48816, "localPedestrian": 1279, "distantPedestrian": 108, "localVehicular": 1284, "distantVehicular": 313, "pctUnresolved": 93.9, "pctLocalOfResolved": 85.9}, "MONTANA": {"local": 2269, "distant": 228, "unresolved": 29315, "resolved": 2497, "total": 31812, "localPedestrian": 1407, "distantPedestrian": 137, "localVehicular": 862, "distantVehicular": 91, "pctUnresolved": 92.2, "pctLocalOfResolved": 90.9}, "NEVADA": {"local": 351, "distant": 2, "unresolved": 5250, "resolved": 353, "total": 5603, "localPedestrian": 204, "distantPedestrian": 0, "localVehicular": 147, "distantVehicular": 2, "pctUnresolved": 93.7, "pctLocalOfResolved": 99.4}, "NEWMAN": {"local": 711, "distant": 111, "unresolved": 12708, "resolved": 822, "total": 13530, "localPedestrian": 384, "distantPedestrian": 54, "localVehicular": 327, "distantVehicular": 57, "pctUnresolved": 93.9, "pctLocalOfResolved": 86.5}, "NOBLE": {"local": 1597, "distant": 114, "unresolved": 11342, "resolved": 1711, "total": 13053, "localPedestrian": 958, "distantPedestrian": 62, "localVehicular": 639, "distantVehicular": 52, "pctUnresolved": 86.9, "pctLocalOfResolved": 93.3}, "OCTAVIA": {"local": 1567, "distant": 57, "unresolved": 12975, "resolved": 1624, "total": 14599, "localPedestrian": 1110, "distantPedestrian": 28, "localVehicular": 457, "distantVehicular": 29, "pctUnresolved": 88.9, "pctLocalOfResolved": 96.5}, "RIO GRANDE": {"local": 4111, "distant": 454, "unresolved": 24572, "resolved": 4565, "total": 29137, "localPedestrian": 2511, "distantPedestrian": 242, "localVehicular": 1600, "distantVehicular": 212, "pctUnresolved": 84.3, "pctLocalOfResolved": 90.1}, "RIVER": {"local": 82, "distant": 0, "unresolved": 1061, "resolved": 82, "total": 1143, "localPedestrian": 8, "distantPedestrian": 0, "localVehicular": 74, "distantVehicular": 0, "pctUnresolved": 92.8, "pctLocalOfResolved": 100.0}, "WRIGHT": {"local": 41, "distant": 0, "unresolved": 131, "resolved": 41, "total": 172, "localPedestrian": 0, "distantPedestrian": 0, "localVehicular": 41, "distantVehicular": 0, "pctUnresolved": 76.2, "pctLocalOfResolved": 100.0}, "WYOMING": {"local": 2480, "distant": 213, "unresolved": 30759, "resolved": 2693, "total": 33452, "localPedestrian": 1318, "distantPedestrian": 120, "localVehicular": 1162, "distantVehicular": 93, "pctUnresolved": 91.9, "pctLocalOfResolved": 92.1}, "YANDELL": {"local": 4812, "distant": 560, "unresolved": 37466, "resolved": 5372, "total": 42838, "localPedestrian": 3237, "distantPedestrian": 304, "localVehicular": 1575, "distantVehicular": 256, "pctUnresolved": 87.5, "pctLocalOfResolved": 89.6}};
+
+function originValue(street, mode, origin){
+  const o = originData[street];
+  if(!o) return 0;
+  if(origin === 'local') return mode === 'pedestrian' ? o.localPedestrian : mode === 'vehicular' ? o.localVehicular : o.local;
+  if(origin === 'distant') return mode === 'pedestrian' ? o.distantPedestrian : mode === 'vehicular' ? o.distantVehicular : o.distant;
+  return null;
+}
 Chart.defaults.font.family = "'IBM Plex Mono', monospace";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = INK;
@@ -416,6 +432,7 @@ Chart.defaults.color = INK;
 let quadMode = 'total';       // 'total' | 'pedestrian' | 'vehicular'
 let quadY = 'total_visits';   // 'total_visits' | 'avg_visits_per_place'
 let quadCat = '__none__';
+let quadOrigin = 'all';       // 'all' | 'local' | 'distant' -- 'local'/'distant' use resolved segments only
 
 function median(arr){
   const s = [...arr].sort((a,b)=>a-b);
@@ -472,7 +489,9 @@ const chartQuad = new Chart(document.getElementById('chart-quadrant'), {
       legend: { display: false },
       tooltip: { callbacks: { label: ctx => {
         const d = ctx.raw.d;
-        const lines = [`${d.street}`, `Traffic (${quadMode}): ${d[quadMode].toLocaleString()}`, `${quadY==='total_visits'?'Total visits':'Avg visits/storefront'}: ${d[quadY].toLocaleString()}`, `Storefronts: ${d.n_places}`];
+        const trafficVal = quadOrigin === 'all' ? d[quadMode] : originValue(d.street, quadMode, quadOrigin);
+        const trafficLabel = quadOrigin === 'all' ? `Traffic (${quadMode})` : `Traffic (${quadMode}, ${quadOrigin}, resolved only)`;
+        const lines = [`${d.street}`, `${trafficLabel}: ${(trafficVal||0).toLocaleString()}`, `${quadY==='total_visits'?'Total visits':'Avg visits/storefront'}: ${d[quadY].toLocaleString()}`, `Storefronts: ${d.n_places}`];
         if(quadCat !== '__none__'){
           const c = d.categories[quadCat];
           lines.push(`${quadCat}: ${c.n} place(s), ${c.visits.toLocaleString()} visits`);
@@ -504,7 +523,7 @@ const chartQuad = new Chart(document.getElementById('chart-quadrant'), {
 
 function renderQuadrant(){
   const points = withPlaces3.map(d => {
-    const x = d[quadMode];
+    const x = quadOrigin === 'all' ? d[quadMode] : originValue(d.street, quadMode, quadOrigin);
     const y = d[quadY];
     let r = 7;
     if(quadCat !== '__none__'){
@@ -517,20 +536,26 @@ function renderQuadrant(){
   chartQuad.data.datasets[0].data = points;
   chartQuad.data.datasets[0].pointRadius = points.map(p => p.r);
   chartQuad.data.datasets[0].backgroundColor = quadCat === '__none__' ? RUST : SLATE;
-  chartQuad.options.scales.x.title.text = quadMode === 'total' ? 'Street traffic -- all measured movement' : (quadMode === 'pedestrian' ? 'Street traffic -- pedestrian movement only' : 'Street traffic -- vehicular movement only');
+  const modeLabel = quadMode === 'total' ? 'all measured movement' : (quadMode === 'pedestrian' ? 'pedestrian movement only' : 'vehicular movement only');
+  chartQuad.options.scales.x.title.text = quadOrigin === 'all' ? `Street traffic -- ${modeLabel}` : `Street traffic -- ${modeLabel}, ${quadOrigin}-origin segments with a resolved home (sample)`;
   chartQuad.options.scales.y.title.text = quadY === 'total_visits' ? 'Total unique visits to storefronts on that street' : 'Average unique visits per storefront on that street';
   chartQuad.$medX = median(points.map(p=>p.x));
   chartQuad.$medY = median(points.map(p=>p.y));
   chartQuad.update();
 
   const readingText = document.getElementById('quad-reading-text');
+  let base;
   if(quadCat === '__none__'){
-    readingText.innerHTML = 'Top-right = high traffic, high visits (proven commercial corridors: Missouri, Montana). Bottom-right = high traffic, low visits (pass-through streets: Ange, Noble, Lee). Top-left = low traffic, high visits (hidden local draws: Nevada). Bottom-left = low traffic, low visits (quiet, largely residential streets).';
+    base = 'Top-right = high traffic, high visits (proven commercial corridors: Missouri, Montana). Bottom-right = high traffic, low visits (pass-through streets: Ange, Noble, Lee). Top-left = low traffic, high visits (hidden local draws: Nevada). Bottom-left = low traffic, low visits (quiet, largely residential streets).';
   } else {
     const withCat = withPlaces3.filter(d => d.categories[quadCat].n > 0).sort((a,b)=>b.categories[quadCat].visits - a.categories[quadCat].visits);
     const top = withCat.slice(0,3).map(d=>d.street).join(', ');
-    readingText.innerHTML = `Point size now scales with <b>${quadCat}</b>'s share of each street's total visits. Streets already carrying this category, by visit volume: <b>${top || 'none in this subarea'}</b>. A large point in the commercial-corridor quadrant is existing proof of concept; a large point in the hidden-local-draw quadrant suggests an underserved pocket of demand; a small or absent point in the pass-through quadrant is a street this category hasn't tested yet.`;
+    base = `Point size now scales with <b>${quadCat}</b>'s share of each street's total visits. Streets already carrying this category, by visit volume: <b>${top || 'none in this subarea'}</b>. A large point in the commercial-corridor quadrant is existing proof of concept; a large point in the hidden-local-draw quadrant suggests an underserved pocket of demand; a small or absent point in the pass-through quadrant is a street this category hasn't tested yet.`;
   }
+  if(quadOrigin !== 'all'){
+    base += ` <b>Note:</b> the x-axis right now plots only ${quadOrigin}-origin segments where a device's home could be resolved -- a small, uneven sample (5-16% of each street's total movement) and not the street's real traffic volume, so quadrant position under this toggle reflects sample composition more than scale.`;
+  }
+  readingText.innerHTML = base;
 }
 
 document.querySelectorAll('#quad-mode-toggle [data-mode]').forEach(btn => btn.addEventListener('click', e => {
@@ -548,6 +573,12 @@ document.querySelectorAll('#quad-y-toggle [data-y]').forEach(btn => btn.addEvent
 document.querySelectorAll('#quad-cat-toggle [data-cat]').forEach(btn => btn.addEventListener('click', e => {
   quadCat = e.currentTarget.dataset.cat;
   document.querySelectorAll('#quad-cat-toggle [data-cat]').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  renderQuadrant();
+}));
+document.querySelectorAll('#quad-origin-toggle [data-origin]').forEach(btn => btn.addEventListener('click', e => {
+  quadOrigin = e.currentTarget.dataset.origin;
+  document.querySelectorAll('#quad-origin-toggle [data-origin]').forEach(b=>b.classList.remove('active'));
   e.currentTarget.classList.add('active');
   renderQuadrant();
 }));

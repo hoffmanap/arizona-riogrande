@@ -1,0 +1,115 @@
+STREETNAME,mode,origin,n_segments,pct_of_street_mode
+ANGE,pedestrian,distant,22,0.2
+ANGE,pedestrian,local,580,5.7
+ANGE,pedestrian,unresolved,9502,94.0
+ANGE,vehicular,distant,54,0.6
+ANGE,vehicular,local,361,4.0
+ANGE,vehicular,unresolved,8613,95.4
+ARIZONA,pedestrian,distant,5,0.1
+ARIZONA,pedestrian,local,311,3.9
+ARIZONA,pedestrian,unresolved,7717,96.1
+ARIZONA,vehicular,distant,3,0.0
+ARIZONA,vehicular,local,215,2.8
+ARIZONA,vehicular,unresolved,7519,97.2
+BROWN,pedestrian,distant,46,0.4
+BROWN,pedestrian,local,625,6.0
+BROWN,pedestrian,unresolved,9725,93.5
+BROWN,vehicular,distant,43,0.4
+BROWN,vehicular,local,402,4.0
+BROWN,vehicular,unresolved,9627,95.6
+CALIFORNIA,pedestrian,local,12,2.0
+CALIFORNIA,pedestrian,unresolved,594,98.0
+CALIFORNIA,vehicular,local,19,1.4
+CALIFORNIA,vehicular,unresolved,1322,98.6
+CIRCLE,pedestrian,local,17,14.3
+CIRCLE,pedestrian,unresolved,102,85.7
+CIRCLE,vehicular,local,19,7.4
+CIRCLE,vehicular,unresolved,239,92.6
+CLIFF,pedestrian,distant,2,1.4
+CLIFF,pedestrian,local,2,1.4
+CLIFF,pedestrian,unresolved,144,97.3
+CLIFF,vehicular,distant,2,0.3
+CLIFF,vehicular,local,5,0.9
+CLIFF,vehicular,unresolved,580,98.8
+DALLAS,pedestrian,distant,58,0.8
+DALLAS,pedestrian,local,440,5.7
+DALLAS,pedestrian,unresolved,7183,93.5
+DALLAS,vehicular,distant,77,1.1
+DALLAS,vehicular,local,277,4.0
+DALLAS,vehicular,unresolved,6494,94.8
+GOLDEN HILL TERRACE,pedestrian,local,3,1.4
+GOLDEN HILL TERRACE,pedestrian,unresolved,206,98.6
+GOLDEN HILL TERRACE,vehicular,local,7,2.0
+GOLDEN HILL TERRACE,vehicular,unresolved,338,98.0
+LANGTRY,pedestrian,distant,9,0.2
+LANGTRY,pedestrian,local,470,9.0
+LANGTRY,pedestrian,unresolved,4754,90.8
+LANGTRY,vehicular,distant,13,0.4
+LANGTRY,vehicular,local,314,9.4
+LANGTRY,vehicular,unresolved,3027,90.3
+LEE,pedestrian,distant,62,1.1
+LEE,pedestrian,local,418,7.3
+LEE,pedestrian,unresolved,5258,91.6
+LEE,vehicular,distant,43,1.3
+LEE,vehicular,local,212,6.5
+LEE,vehicular,unresolved,3002,92.2
+MISSOURI,pedestrian,distant,108,0.6
+MISSOURI,pedestrian,local,1279,6.6
+MISSOURI,pedestrian,unresolved,18115,92.9
+MISSOURI,vehicular,distant,313,1.1
+MISSOURI,vehicular,local,1284,4.4
+MISSOURI,vehicular,unresolved,27717,94.6
+MONTANA,pedestrian,distant,137,0.8
+MONTANA,pedestrian,local,1407,8.3
+MONTANA,pedestrian,unresolved,15331,90.9
+MONTANA,vehicular,distant,91,0.6
+MONTANA,vehicular,local,862,5.8
+MONTANA,vehicular,unresolved,13984,93.6
+NEVADA,pedestrian,local,204,6.7
+NEVADA,pedestrian,unresolved,2836,93.3
+NEVADA,vehicular,distant,2,0.1
+NEVADA,vehicular,local,147,5.7
+NEVADA,vehicular,unresolved,2414,94.2
+NEWMAN,pedestrian,distant,54,0.6
+NEWMAN,pedestrian,local,384,4.1
+NEWMAN,pedestrian,unresolved,8841,95.3
+NEWMAN,vehicular,distant,57,1.3
+NEWMAN,vehicular,local,327,7.7
+NEWMAN,vehicular,unresolved,3867,91.0
+NOBLE,pedestrian,distant,62,0.9
+NOBLE,pedestrian,local,958,14.2
+NOBLE,pedestrian,unresolved,5710,84.8
+NOBLE,vehicular,distant,52,0.8
+NOBLE,vehicular,local,639,10.1
+NOBLE,vehicular,unresolved,5632,89.1
+OCTAVIA,pedestrian,distant,28,0.3
+OCTAVIA,pedestrian,local,1110,13.1
+OCTAVIA,pedestrian,unresolved,7352,86.6
+OCTAVIA,vehicular,distant,29,0.5
+OCTAVIA,vehicular,local,457,7.5
+OCTAVIA,vehicular,unresolved,5623,92.0
+RIO GRANDE,pedestrian,distant,242,1.5
+RIO GRANDE,pedestrian,local,2511,15.7
+RIO GRANDE,pedestrian,unresolved,13204,82.7
+RIO GRANDE,vehicular,distant,212,1.6
+RIO GRANDE,vehicular,local,1600,12.1
+RIO GRANDE,vehicular,unresolved,11368,86.3
+RIVER,pedestrian,local,8,2.1
+RIVER,pedestrian,unresolved,377,97.9
+RIVER,vehicular,local,74,9.8
+RIVER,vehicular,unresolved,684,90.2
+WRIGHT,pedestrian,unresolved,51,100.0
+WRIGHT,vehicular,local,41,33.9
+WRIGHT,vehicular,unresolved,80,66.1
+WYOMING,pedestrian,distant,120,0.7
+WYOMING,pedestrian,local,1318,7.5
+WYOMING,pedestrian,unresolved,16217,91.9
+WYOMING,vehicular,distant,93,0.6
+WYOMING,vehicular,local,1162,7.4
+WYOMING,vehicular,unresolved,14542,92.1
+YANDELL,pedestrian,distant,304,1.1
+YANDELL,pedestrian,local,3237,11.7
+YANDELL,pedestrian,unresolved,24087,87.2
+YANDELL,vehicular,distant,256,1.7
+YANDELL,vehicular,local,1575,10.4
+YANDELL,vehicular,unresolved,13379,88.0
