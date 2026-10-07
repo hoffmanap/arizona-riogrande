@@ -121,13 +121,33 @@ footer a{color:var(--slate);}
     where a third of visits last an hour-plus is doing destination business, not just capturing
     pass-by traffic -- another argument for protecting and expanding small-format commercial rather than
     treating these blocks as a pure drive corridor.</div>
+    <div class="finding" style="border-left-color:var(--slate);">Dwell time also differs by <b>what kind of
+    place</b> a device visited -- toggle the categories below. <b>Grocery stores cluster tightly around
+    15-60 minutes</b> (64% of visits) and almost never run past two hours, a classic single-trip pattern.
+    <b>Automotive repair is bimodal</b> -- 28% of visits are under 5 minutes (drop-off/pickup) but another
+    18% run 2+ hours (the actual repair wait), with little in between. <b>Lessors of real estate</b>
+    (apartment/condo buildings -- i.e., residents' own dwell time at home) is the flattest of all five,
+    spread almost evenly from under 5 minutes to 2+ hours, which is what you'd expect from a category
+    that's really measuring residents coming and going rather than a single kind of errand.</div>
+    <div class="card" style="margin-bottom:18px;">
+      <h3>Toggle by category <span class="pill">top 5 categories by matched devices, real dwell_time join</span></h3>
+      <div class="mode-toggle" id="dwell-cat-toggle" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" class="mode-btn active" data-cat="__all__">All</button>
+        <button type="button" class="mode-btn" data-cat="Lessors of Real Estate">Lessors of Real Estate</button>
+        <button type="button" class="mode-btn" data-cat="Legal Services">Legal Services</button>
+        <button type="button" class="mode-btn" data-cat="Accounting, Tax Preparation, Bookkeeping, and Payroll Services">Accounting / Tax / Payroll</button>
+        <button type="button" class="mode-btn" data-cat="Grocery Stores">Grocery Stores</button>
+        <button type="button" class="mode-btn" data-cat="Automotive Repair and Maintenance">Automotive Repair</button>
+        <button type="button" class="mode-btn" data-cat="Other">Other (68 smaller categories)</button>
+      </div>
+    </div>
     <div class="grid2">
       <div class="card">
-        <h3>Dwell-time distribution <span class="pill">share of sampled visits</span></h3>
+        <h3 id="dwell-chart-title">Dwell-time distribution <span class="pill">share of sampled visits, all categories</span></h3>
         <div class="chartbox"><canvas id="chart-dwell"></canvas></div>
       </div>
       <div class="card">
-        <h3>At a glance <span class="pill">sampled visits</span></h3>
+        <h3>At a glance <span class="pill">sampled visits, all categories</span></h3>
         <div class="statrow"><span class="lab">Median dwell, all visits</span><span class="val">24.9 min</span></div>
         <div class="statrow"><span class="lab">Mean dwell, all visits</span><span class="val">53.6 min</span></div>
         <div class="statrow"><span class="lab">Median dwell at primary stop ("inner")</span><span class="val">21.8 min</span></div>
@@ -293,14 +313,40 @@ new Chart(document.getElementById('chart-draw-work'), {
   options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{size:11} } } } }
 });
 
-// --- Section 2: dwell time (share of sampled visits, not raw counts) ---
-new Chart(document.getElementById('chart-dwell'), {
+// --- Section 2: dwell time (share of sampled visits, not raw counts), toggleable by category ---
+const dwellBuckets = ['<5 min','5-15 min','15-30 min','30-60 min','1-2 hr','2+ hr'];
+const dwellByCategory = {
+  '__all__': { n: 5247, share: [19.3,16.8,15.4,16.6,16.4,15.5] },
+  'Lessors of Real Estate': { n: 790, share: [19.5,17.2,11.9,14.1,19.6,17.7] },
+  'Legal Services': { n: 689, share: [14.9,19.3,13.9,18.1,17.1,16.5] },
+  'Accounting, Tax Preparation, Bookkeeping, and Payroll Services': { n: 329, share: [16.7,15.8,20.1,23.4,12.8,11.2] },
+  'Grocery Stores': { n: 298, share: [11.7,18.8,32.9,31.2,2.0,3.4] },
+  'Automotive Repair and Maintenance': { n: 281, share: [27.8,17.1,11.7,14.2,11.4,17.8] },
+  'Other': { n: 2860, share: [20.6,15.9,14.8,14.8,17.8,16.1] }
+};
+const dwellLabelShort = { '__all__':'all categories', 'Accounting, Tax Preparation, Bookkeeping, and Payroll Services':'accounting / tax / payroll', 'Automotive Repair and Maintenance':'automotive repair', 'Other':'other (68 smaller categories)' };
+function dwellLabel(cat){ return dwellLabelShort[cat] || cat.toLowerCase(); }
+
+const chartDwell = new Chart(document.getElementById('chart-dwell'), {
   type: 'bar',
   data: {
-    labels: ['<5 min','5-15 min','15-30 min','30-60 min','1-2 hr','2+ hr'],
-    datasets: [{ label:'Share of visits', data:[19.3,16.8,15.4,16.6,16.4,15.5], backgroundColor: RUST }]
+    labels: dwellBuckets,
+    datasets: [{ label:'Share of visits', data: dwellByCategory['__all__'].share, backgroundColor: RUST }]
   },
   options: baseOpts({ plugins:{ legend:{ display:false } }, scales:{ y:{ grid:{color:LINE}, ticks:{color:INK_SOFT, callback:v=>v+'%'} }, x:{grid:{color:LINE}, ticks:{color:INK_SOFT}} } })
+});
+
+document.querySelectorAll('#dwell-cat-toggle [data-cat]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const cat = e.currentTarget.dataset.cat;
+    document.querySelectorAll('#dwell-cat-toggle [data-cat]').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const d = dwellByCategory[cat];
+    chartDwell.data.datasets[0].data = d.share;
+    chartDwell.update();
+    const label = dwellLabel(cat);
+    document.getElementById('dwell-chart-title').innerHTML = `Dwell-time distribution <span class="pill">share of sampled visits, ${label} &middot; n=${d.n}</span>`;
+  });
 });
 
 // --- Section 3: street mode split ---

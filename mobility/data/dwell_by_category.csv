@@ -1,0 +1,37 @@
+category,bucket,n_devices,share_pct
+Lessors of Real Estate,<5 min,154,19.5
+Lessors of Real Estate,5-15 min,136,17.2
+Lessors of Real Estate,15-30 min,94,11.9
+Lessors of Real Estate,30-60 min,111,14.1
+Lessors of Real Estate,1-2 hr,155,19.6
+Lessors of Real Estate,2+ hr,140,17.7
+Legal Services,<5 min,103,14.9
+Legal Services,5-15 min,133,19.3
+Legal Services,15-30 min,96,13.9
+Legal Services,30-60 min,125,18.1
+Legal Services,1-2 hr,118,17.1
+Legal Services,2+ hr,114,16.5
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",<5 min,55,16.7
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",5-15 min,52,15.8
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",15-30 min,66,20.1
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",30-60 min,77,23.4
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",1-2 hr,42,12.8
+"Accounting, Tax Preparation, Bookkeeping, and Payroll Services",2+ hr,37,11.2
+Grocery Stores,<5 min,35,11.7
+Grocery Stores,5-15 min,56,18.8
+Grocery Stores,15-30 min,98,32.9
+Grocery Stores,30-60 min,93,31.2
+Grocery Stores,1-2 hr,6,2.0
+Grocery Stores,2+ hr,10,3.4
+Automotive Repair and Maintenance,<5 min,78,27.8
+Automotive Repair and Maintenance,5-15 min,48,17.1
+Automotive Repair and Maintenance,15-30 min,33,11.7
+Automotive Repair and Maintenance,30-60 min,40,14.2
+Automotive Repair and Maintenance,1-2 hr,32,11.4
+Automotive Repair and Maintenance,2+ hr,50,17.8
+Other,<5 min,590,20.6
+Other,5-15 min,454,15.9
+Other,15-30 min,422,14.8
+Other,30-60 min,424,14.8
+Other,1-2 hr,509,17.8
+Other,2+ hr,461,16.1
