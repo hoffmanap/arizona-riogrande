@@ -7,7 +7,7 @@ built to support a Title 20 subarea rezoning.
 **Live demo:** once hosted on GitHub Pages, the whole thing lives at one URL:
 
 ```
-https://<your-username>.github.io/<your-repo>/
+https://hoffmanap.github.io/arizona-riogrande/
 ```
 
 That URL loads `index.html`, a two-tab landing page with both tools embedded — no separate links
