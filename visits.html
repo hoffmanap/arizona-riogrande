@@ -129,11 +129,17 @@ footer a{color:var(--slate);}
 <div class="section-title">
   <div class="num">03 / WHERE WOULD A BUSINESS SUCCEED?</div>
   <h2>Quadrant tool: traffic volume vs. business visits, by mode and by category</h2>
-  <p>Every street plotted by its traffic volume (x) against the total visits its storefronts received (y),
-  split into four quadrants at the subarea median on each axis. Toggle the mode to isolate foot vs. vehicle
-  traffic, switch the y-axis to compare total volume vs. visits per storefront, and highlight a business
-  category to see which quadrant it already clusters in -- a rough, evidence-based answer to "where would
-  this kind of business do well here."</p>
+  <p>Every street plotted by its traffic volume (x) against the total visits its storefronts received (y, log
+  scale), split into four quadrants at the subarea median on each axis. This isn't simply "top half good,
+  bottom half bad" -- each quadrant implies a different opportunity: <b>commercial corridor</b> (top-right) is
+  proven, already-working retail/office streets -- safe bets for more of the same. <b>Hidden local draw</b>
+  (top-left) is a street with comparatively little traffic that still pulls real visits -- a sign of
+  underserved demand worth testing with more commercial space. <b>Pass-through</b> (bottom-right) carries a lot
+  of traffic that isn't currently stopping -- the opportunity there is capturing passersby who aren't being
+  given a reason to stop yet, not a street that's already working. <b>Quiet/residential</b> (bottom-left) is
+  the weakest case for new commercial activity either way. Toggle the mode to isolate foot vs. vehicle traffic,
+  switch the y-axis to compare total volume vs. visits per storefront, and highlight a business category to see
+  which quadrant it already clusters in.</p>
 </div>
 <div class="wrap">
   <div class="mapcol" style="flex:1 1 640px;">
@@ -501,7 +507,7 @@ const chartQuad = new Chart(document.getElementById('chart-quadrant'), {
     },
     scales: {
       x: { title:{display:true, text:'Street traffic'}, grid:{color:'#c9bea3'}, ticks:{color:INK} },
-      y: { title:{display:true, text:'Business visits'}, grid:{color:'#c9bea3'}, ticks:{color:INK} }
+      y: { type:'logarithmic', title:{display:true, text:'Business visits'}, grid:{color:'#c9bea3'}, ticks:{color:INK, callback: v => { const s = String(v); return (/^[1-9]$/.test(s) || /^10+$/.test(s)) ? v.toLocaleString() : ''; }} }
     }
   },
   plugins: [quadrantPlugin, {
@@ -538,7 +544,8 @@ function renderQuadrant(){
   chartQuad.data.datasets[0].backgroundColor = quadCat === '__none__' ? RUST : SLATE;
   const modeLabel = quadMode === 'total' ? 'all measured movement' : (quadMode === 'pedestrian' ? 'pedestrian movement only' : 'vehicular movement only');
   chartQuad.options.scales.x.title.text = quadOrigin === 'all' ? `Street traffic -- ${modeLabel}` : `Street traffic -- ${modeLabel}, ${quadOrigin}-origin segments with a resolved home (sample)`;
-  chartQuad.options.scales.y.title.text = quadY === 'total_visits' ? 'Total unique visits to storefronts on that street' : 'Average unique visits per storefront on that street';
+  chartQuad.options.scales.y.type = quadY === 'total_visits' ? 'logarithmic' : 'linear';
+  chartQuad.options.scales.y.title.text = (quadY === 'total_visits' ? 'Total unique visits to storefronts on that street (log scale)' : 'Average unique visits per storefront on that street');
   chartQuad.$medX = median(points.map(p=>p.x));
   chartQuad.$medY = median(points.map(p=>p.y));
   chartQuad.update();
@@ -546,7 +553,7 @@ function renderQuadrant(){
   const readingText = document.getElementById('quad-reading-text');
   let base;
   if(quadCat === '__none__'){
-    base = 'Top-right = high traffic, high visits (proven commercial corridors: Missouri, Montana). Bottom-right = high traffic, low visits (pass-through streets: Ange, Noble, Lee). Top-left = low traffic, high visits (hidden local draws: Nevada). Bottom-left = low traffic, low visits (quiet, largely residential streets).';
+    base = 'Top-right = commercial corridor, already working (Missouri, Montana). Bottom-right = pass-through -- high traffic that isn\'t stopping (Ange, Noble, Lee); the opportunity here is capturing that traffic, not evidence it already works. Top-left = hidden local draw -- real visits despite low traffic (Nevada), worth testing with more space. Bottom-left = quiet/residential, the weakest case for new commercial. <b>Caveat:</b> this is whole-street data -- a street can be pass-through for six blocks and a destination for two, so treat this as a starting filter, not a block-by-block verdict (a segment-level version is in progress).';
   } else {
     const withCat = withPlaces3.filter(d => d.categories[quadCat].n > 0).sort((a,b)=>b.categories[quadCat].visits - a.categories[quadCat].visits);
     const top = withCat.slice(0,3).map(d=>d.street).join(', ');
