@@ -1,4 +1,4 @@
-# Five Points Subarea — Zoning Modernization
+# Arizona-Rio Grande Subarea — Zoning Modernization
 
 Parcel-level nonconformity analysis and policy-design tools for a 799-parcel subarea north of
 Downtown El Paso (the Wyoming / Missouri / Yandell corridor and surrounding residential blocks),

@@ -1,6 +1,6 @@
 # Mobility data scripts
 
-Cell-phone mobility analysis for the Five Points / Sunset Heights subarea,
+Cell-phone mobility analysis for the Arizona-Rio Grande subarea,
 grounding the zoning recommendations in actual visitor/traffic patterns.
 
 ## Data (`data/`)
