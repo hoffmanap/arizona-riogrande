@@ -127,41 +127,66 @@ footer a{color:var(--slate);}
 </div>
 
 <div class="section-title">
-  <div class="num">03 / DOES TRAFFIC MEAN BUSINESS?</div>
-  <h2>High-traffic streets and high-visit businesses only partly overlap</h2>
-  <p>Every street's total measured movement (foot + vehicle) plotted against the total unique visits its
-  storefronts actually received, by matching each place's street address to the 21 subarea streets
-  (398 of 398 places matched). If traffic volume reliably predicted business visits, these points would
-  line up on a clean diagonal -- they don't.</p>
+  <div class="num">03 / WHERE WOULD A BUSINESS SUCCEED?</div>
+  <h2>Quadrant tool: traffic volume vs. business visits, by mode and by category</h2>
+  <p>Every street plotted by its traffic volume (x) against the total visits its storefronts received (y),
+  split into four quadrants at the subarea median on each axis. Toggle the mode to isolate foot vs. vehicle
+  traffic, switch the y-axis to compare total volume vs. visits per storefront, and highlight a business
+  category to see which quadrant it already clusters in -- a rough, evidence-based answer to "where would
+  this kind of business do well here."</p>
 </div>
 <div class="wrap">
   <div class="mapcol" style="flex:1 1 640px;">
     <div class="card">
-      <div class="chartbox-scatter"><canvas id="chart-traffic-visits"></canvas></div>
+      <div class="chartbox-scatter"><canvas id="chart-quadrant"></canvas></div>
     </div>
   </div>
   <div class="sidebar" style="flex:0 0 420px;">
     <div class="card">
-      <h3>What the correlation says <span class="note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">r = 0.66 across 17 streets with any storefronts</span></h3>
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px;">A moderate, not a strong,
-      relationship. Traffic volume explains some but far from all of the variation in how much business
-      activity a street supports -- some streets clearly carry <b>pass-through</b> volume with little to
-      show for it in visits, and others support more business than their traffic volume alone would
-      predict.</p>
-      <div class="statrow"><span class="lab">Heavy traffic, light visits (pass-through)</span><span class="val">Ange, Noble, Lee</span></div>
-      <div class="statrow" style="border-bottom:none;"><span class="lab">Modest traffic, high visits/place (destination)</span><span class="val">Nevada, Missouri</span></div>
+      <h3>Traffic mode</h3>
+      <div class="mode-toggle" id="quad-mode-toggle">
+        <button type="button" class="mode-btn active" data-mode="total">All movement</button>
+        <button type="button" class="mode-btn" data-mode="pedestrian">Pedestrian only</button>
+        <button type="button" class="mode-btn" data-mode="vehicular">Vehicular only</button>
+      </div>
     </div>
     <div class="card">
-      <h3>Reading the outliers</h3>
-      <p style="font-size:13px;color:var(--ink-soft);margin:0;"><b>Ange</b> carries the 6th-most total
-      movement in the subarea but has only one storefront and 218 visits -- almost purely a through-street.
-      <b>Noble</b> and <b>Lee</b> show the same pattern at a smaller scale. By contrast, <b>Missouri</b> and
-      <b>Montana</b> both convert heavy traffic into heavy visits (they anchor the top-right of the chart),
-      while <b>Nevada</b> -- middling traffic, only two storefronts -- still produces the highest average
-      visits per place in the subarea (915), suggesting a couple of genuine destinations rather than
-      pass-by volume. The zoning implication: traffic counts alone can't tell you which streets are already
-      functioning as commercial corridors versus which just happen to carry cars or pedestrians through a
-      residential block.</p>
+      <h3>Trip origin <span class="note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">not available yet -- see note below</span></h3>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" disabled style="opacity:.55;cursor:not-allowed;">All trips</button>
+        <button type="button" class="mode-btn" disabled style="opacity:.4;cursor:not-allowed;">Local only</button>
+        <button type="button" class="mode-btn" disabled style="opacity:.4;cursor:not-allowed;">Pass-through only</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;">Splitting traffic into local-origin
+      vs. pass-through requires joining device home-distance to street-level movement, which isn't in any
+      file committed to this repo yet -- <code>mobility/scripts/street_traffic_origin.py</code> computes it
+      from the raw pathing_x_report + resident_worker_report. Run it and send back
+      <code>street_traffic_origin.csv</code> to light this toggle up with real data.</p>
+    </div>
+    <div class="card">
+      <h3>Y-axis</h3>
+      <div class="mode-toggle" id="quad-y-toggle">
+        <button type="button" class="mode-btn active" data-y="total_visits">Total visits</button>
+        <button type="button" class="mode-btn" data-y="avg_visits_per_place">Avg visits / storefront</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Highlight category <span class="note" style="display:block;font-size:10.5px;color:var(--ink-soft);margin-top:3px;">sizes points by that category's share of the street's visits</span></h3>
+      <div class="mode-toggle" id="quad-cat-toggle" style="flex-wrap:wrap;">
+        <button type="button" class="mode-btn active" data-cat="__none__">None</button>
+        <button type="button" class="mode-btn" data-cat="Offices of Physicians">Physicians</button>
+        <button type="button" class="mode-btn" data-cat="Legal Services">Legal</button>
+        <button type="button" class="mode-btn" data-cat="Lessors of Real Estate">Real Estate</button>
+        <button type="button" class="mode-btn" data-cat="Offices of Other Health Practitioners">Health (other)</button>
+        <button type="button" class="mode-btn" data-cat="Personal Care Services">Personal Care</button>
+      </div>
+    </div>
+    <div class="card" id="quad-reading">
+      <h3>Reading this quadrant</h3>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0;" id="quad-reading-text">Top-right = high
+      traffic, high visits (proven commercial corridors: Missouri, Montana). Bottom-right = high traffic,
+      low visits (pass-through streets: Ange, Noble, Lee). Top-left = low traffic, high visits (hidden local
+      draws: Nevada). Bottom-left = low traffic, low visits (quiet, largely residential streets).</p>
     </div>
   </div>
 </div>
@@ -178,7 +203,7 @@ footer a{color:var(--slate);}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 <script>
-const INK = '#2B2420', RUST = '#A6531C', SLATE = '#3D5A6C', HL = '#E2B94B', PARCH_DARK = '#DED5BE';
+const INK = '#2B2420', INK_SOFT = '#54493d', RUST = '#A6531C', SLATE = '#3D5A6C', HL = '#E2B94B', PARCH_DARK = '#DED5BE';
 const BASEMAP_ATTR = 'Tiles &copy; Esri';
 const BASEMAP_BASE = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 const BASEMAP_REF  = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
@@ -381,59 +406,153 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
   });
 });
 
-/* ===================== SECTION 3: TRAFFIC VS. VISITS SCATTER ===================== */
-const trafficVsVisits = [{"street": "MISSOURI", "traffic": 23655, "n_places": 26, "total_visits": 36660, "avg_visits_per_place": 1410.0}, {"street": "YANDELL", "traffic": 19980, "n_places": 55, "total_visits": 29405, "avg_visits_per_place": 534.6}, {"street": "MONTANA", "traffic": 18991, "n_places": 207, "total_visits": 103972, "avg_visits_per_place": 502.3}, {"street": "WYOMING", "traffic": 17733, "n_places": 27, "total_visits": 16367, "avg_visits_per_place": 606.2}, {"street": "RIO GRANDE", "traffic": 16393, "n_places": 23, "total_visits": 15232, "avg_visits_per_place": 662.3}, {"street": "ANGE", "traffic": 10926, "n_places": 1, "total_visits": 218, "avg_visits_per_place": 218.0}, {"street": "BROWN", "traffic": 10653, "n_places": 5, "total_visits": 3572, "avg_visits_per_place": 714.4}, {"street": "OCTAVIA", "traffic": 8636, "n_places": 2, "total_visits": 929, "avg_visits_per_place": 464.5}, {"street": "ARIZONA", "traffic": 8527, "n_places": 15, "total_visits": 6430, "avg_visits_per_place": 428.7}, {"street": "DALLAS", "traffic": 8209, "n_places": 5, "total_visits": 3465, "avg_visits_per_place": 693.0}, {"street": "NOBLE", "traffic": 7626, "n_places": 12, "total_visits": 1347, "avg_visits_per_place": 112.2}, {"street": "NEWMAN", "traffic": 5675, "n_places": 7, "total_visits": 2227, "avg_visits_per_place": 318.1}, {"street": "LEE", "traffic": 5529, "n_places": 3, "total_visits": 476, "avg_visits_per_place": 158.7}, {"street": "LANGTRY", "traffic": 4365, "n_places": 3, "total_visits": 1606, "avg_visits_per_place": 535.3}, {"street": "NEVADA", "traffic": 3145, "n_places": 2, "total_visits": 1830, "avg_visits_per_place": 915.0}, {"street": "CALIFORNIA", "traffic": 942, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "RIVER", "traffic": 883, "n_places": 4, "total_visits": 254, "avg_visits_per_place": 63.5}, {"street": "CLIFF", "traffic": 448, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "GOLDEN HILL TERRACE", "traffic": 342, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}, {"street": "CIRCLE", "traffic": 243, "n_places": 1, "total_visits": 1, "avg_visits_per_place": 1.0}, {"street": "WRIGHT", "traffic": 139, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0}];
-const withPlaces = trafficVsVisits.filter(d => d.n_places > 0);
+/* ===================== SECTION 3: QUADRANT TOOL ===================== */
+const quadData = [{"street": "ANGE", "total": 10926, "pedestrian": 5472, "vehicular": 5454, "n_places": 1, "total_visits": 218, "avg_visits_per_place": 218.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 218, "n": 1}}}, {"street": "ARIZONA", "total": 8527, "pedestrian": 4187, "vehicular": 4340, "n_places": 15, "total_visits": 6430, "avg_visits_per_place": 428.7, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 1087, "n": 2}, "Lessors of Real Estate": {"visits": 2020, "n": 2}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 3323, "n": 11}}}, {"street": "BROWN", "total": 10653, "pedestrian": 4954, "vehicular": 5699, "n_places": 5, "total_visits": 3572, "avg_visits_per_place": 714.4, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 1397, "n": 3}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 2175, "n": 2}}}, {"street": "CALIFORNIA", "total": 942, "pedestrian": 293, "vehicular": 649, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "CIRCLE", "total": 243, "pedestrian": 64, "vehicular": 179, "n_places": 1, "total_visits": 1, "avg_visits_per_place": 1.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1, "n": 1}}}, {"street": "CLIFF", "total": 448, "pedestrian": 101, "vehicular": 347, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "DALLAS", "total": 8209, "pedestrian": 4052, "vehicular": 4157, "n_places": 5, "total_visits": 3465, "avg_visits_per_place": 693.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 2412, "n": 2}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 331, "n": 1}, "Other": {"visits": 722, "n": 2}}}, {"street": "GOLDEN HILL TERRACE", "total": 342, "pedestrian": 125, "vehicular": 217, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "LANGTRY", "total": 4365, "pedestrian": 2397, "vehicular": 1968, "n_places": 3, "total_visits": 1606, "avg_visits_per_place": 535.3, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1606, "n": 3}}}, {"street": "LEE", "total": 5529, "pedestrian": 3445, "vehicular": 2084, "n_places": 3, "total_visits": 476, "avg_visits_per_place": 158.7, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 476, "n": 3}}}, {"street": "MISSOURI", "total": 23655, "pedestrian": 8508, "vehicular": 15147, "n_places": 26, "total_visits": 36660, "avg_visits_per_place": 1410.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 6573, "n": 8}, "Lessors of Real Estate": {"visits": 2196, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 5855, "n": 1}, "Other": {"visits": 22036, "n": 16}}}, {"street": "MONTANA", "total": 18991, "pedestrian": 9114, "vehicular": 9877, "n_places": 207, "total_visits": 103972, "avg_visits_per_place": 502.3, "categories": {"Offices of Physicians": {"visits": 25229, "n": 54}, "Legal Services": {"visits": 17196, "n": 39}, "Lessors of Real Estate": {"visits": 698, "n": 2}, "Offices of Other Health Practitioners": {"visits": 11673, "n": 25}, "Personal Care Services": {"visits": 1355, "n": 6}, "Other": {"visits": 47821, "n": 81}}}, {"street": "NEVADA", "total": 3145, "pedestrian": 1700, "vehicular": 1445, "n_places": 2, "total_visits": 1830, "avg_visits_per_place": 915.0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 1301, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 529, "n": 1}}}, {"street": "NEWMAN", "total": 5675, "pedestrian": 3246, "vehicular": 2429, "n_places": 7, "total_visits": 2227, "avg_visits_per_place": 318.1, "categories": {"Offices of Physicians": {"visits": 320, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 586, "n": 1}, "Offices of Other Health Practitioners": {"visits": 320, "n": 1}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 1001, "n": 4}}}, {"street": "NOBLE", "total": 7626, "pedestrian": 3751, "vehicular": 3875, "n_places": 12, "total_visits": 1347, "avg_visits_per_place": 112.2, "categories": {"Offices of Physicians": {"visits": 32, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 98, "n": 1}, "Offices of Other Health Practitioners": {"visits": 64, "n": 2}, "Personal Care Services": {"visits": 32, "n": 1}, "Other": {"visits": 1121, "n": 7}}}, {"street": "OCTAVIA", "total": 8636, "pedestrian": 4784, "vehicular": 3852, "n_places": 2, "total_visits": 929, "avg_visits_per_place": 464.5, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 929, "n": 2}}}, {"street": "RIO GRANDE", "total": 16393, "pedestrian": 8570, "vehicular": 7823, "n_places": 23, "total_visits": 15232, "avg_visits_per_place": 662.3, "categories": {"Offices of Physicians": {"visits": 1276, "n": 2}, "Legal Services": {"visits": 3120, "n": 6}, "Lessors of Real Estate": {"visits": 5490, "n": 4}, "Offices of Other Health Practitioners": {"visits": 2195, "n": 3}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 3151, "n": 8}}}, {"street": "RIVER", "total": 883, "pedestrian": 322, "vehicular": 561, "n_places": 4, "total_visits": 254, "avg_visits_per_place": 63.5, "categories": {"Offices of Physicians": {"visits": 40, "n": 2}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 214, "n": 2}}}, {"street": "WRIGHT", "total": 139, "pedestrian": 44, "vehicular": 95, "n_places": 0, "total_visits": 0, "avg_visits_per_place": 0, "categories": {"Offices of Physicians": {"visits": 0, "n": 0}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 0, "n": 0}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 0, "n": 0}}}, {"street": "WYOMING", "total": 17733, "pedestrian": 8973, "vehicular": 8760, "n_places": 27, "total_visits": 16367, "avg_visits_per_place": 606.2, "categories": {"Offices of Physicians": {"visits": 114, "n": 1}, "Legal Services": {"visits": 0, "n": 0}, "Lessors of Real Estate": {"visits": 385, "n": 1}, "Offices of Other Health Practitioners": {"visits": 0, "n": 0}, "Personal Care Services": {"visits": 0, "n": 0}, "Other": {"visits": 15868, "n": 25}}}, {"street": "YANDELL", "total": 19980, "pedestrian": 11914, "vehicular": 8066, "n_places": 55, "total_visits": 29405, "avg_visits_per_place": 534.6, "categories": {"Offices of Physicians": {"visits": 3629, "n": 8}, "Legal Services": {"visits": 2424, "n": 8}, "Lessors of Real Estate": {"visits": 3546, "n": 3}, "Offices of Other Health Practitioners": {"visits": 1533, "n": 3}, "Personal Care Services": {"visits": 2010, "n": 3}, "Other": {"visits": 16263, "n": 30}}}];
+const withPlaces3 = quadData.filter(d => d.n_places > 0);
 Chart.defaults.font.family = "'IBM Plex Mono', monospace";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = INK;
-new Chart(document.getElementById('chart-traffic-visits'), {
+
+let quadMode = 'total';       // 'total' | 'pedestrian' | 'vehicular'
+let quadY = 'total_visits';   // 'total_visits' | 'avg_visits_per_place'
+let quadCat = '__none__';
+
+function median(arr){
+  const s = [...arr].sort((a,b)=>a-b);
+  const n = s.length;
+  return n % 2 ? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2;
+}
+
+const quadrantPlugin = {
+  id: 'quadrantShading',
+  beforeDatasetsDraw(chart){
+    const {ctx, chartArea, scales} = chart;
+    if(!chartArea) return;
+    const xMid = scales.x.getPixelForValue(chart.$medX);
+    const yMid = scales.y.getPixelForValue(chart.$medY);
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#DED5BE';
+    ctx.fillRect(chartArea.left, chartArea.top, xMid-chartArea.left, yMid-chartArea.top); // top-left
+    ctx.fillStyle = '#F4EFE2';
+    ctx.fillRect(xMid, chartArea.top, chartArea.right-xMid, yMid-chartArea.top); // top-right
+    ctx.fillRect(chartArea.left, yMid, xMid-chartArea.left, chartArea.bottom-yMid); // bottom-left
+    ctx.fillStyle = '#DED5BE';
+    ctx.fillRect(xMid, yMid, chartArea.right-xMid, chartArea.bottom-yMid); // bottom-right
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = INK;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xMid, chartArea.top); ctx.lineTo(xMid, chartArea.bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(chartArea.left, yMid); ctx.lineTo(chartArea.right, yMid); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = INK_SOFT;
+    ctx.fillText('PASS-THROUGH', chartArea.right-95, yMid+14);
+    ctx.fillText('COMMERCIAL CORRIDOR', xMid+8, chartArea.top+14);
+    ctx.fillText('QUIET / RESIDENTIAL', chartArea.left+8, yMid+14);
+    ctx.fillText('HIDDEN LOCAL DRAW', chartArea.left+8, chartArea.top+14);
+    ctx.restore();
+  }
+};
+
+const chartQuad = new Chart(document.getElementById('chart-quadrant'), {
   type: 'scatter',
-  data: {
-    datasets: [{
-      label: 'Streets with storefronts',
-      data: withPlaces.map(d => ({x: d.traffic, y: d.total_visits, label: d.street})),
-      backgroundColor: RUST,
-      borderColor: INK,
-      borderWidth: 1,
-      pointRadius: 7,
-      pointHoverRadius: 9
-    }]
-  },
+  data: { datasets: [{
+    label: 'Streets with storefronts',
+    data: [],
+    backgroundColor: RUST,
+    borderColor: INK,
+    borderWidth: 1,
+    pointRadius: 7,
+    pointHoverRadius: 9
+  }]},
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => {
-            const d = withPlaces[ctx.dataIndex];
-            return [`${d.street}`, `Traffic (total movements): ${d.traffic.toLocaleString()}`, `Total place visits: ${d.total_visits.toLocaleString()}`, `Storefronts: ${d.n_places}`, `Avg visits/place: ${d.avg_visits_per_place.toLocaleString()}`];
-          }
+      tooltip: { callbacks: { label: ctx => {
+        const d = ctx.raw.d;
+        const lines = [`${d.street}`, `Traffic (${quadMode}): ${d[quadMode].toLocaleString()}`, `${quadY==='total_visits'?'Total visits':'Avg visits/storefront'}: ${d[quadY].toLocaleString()}`, `Storefronts: ${d.n_places}`];
+        if(quadCat !== '__none__'){
+          const c = d.categories[quadCat];
+          lines.push(`${quadCat}: ${c.n} place(s), ${c.visits.toLocaleString()} visits`);
         }
-      }
+        return lines;
+      }}}
     },
     scales: {
-      x: { title: { display:true, text:'Street traffic -- total measured movements' }, grid:{color:'#c9bea3'}, ticks:{color:INK} },
-      y: { title: { display:true, text:'Total unique visits to storefronts on that street' }, grid:{color:'#c9bea3'}, ticks:{color:INK} }
+      x: { title:{display:true, text:'Street traffic'}, grid:{color:'#c9bea3'}, ticks:{color:INK} },
+      y: { title:{display:true, text:'Business visits'}, grid:{color:'#c9bea3'}, ticks:{color:INK} }
     }
   },
-  plugins: [{
+  plugins: [quadrantPlugin, {
     id: 'pointLabels',
-    afterDatasetsDraw(chart) {
+    afterDatasetsDraw(chart){
       const {ctx} = chart;
       const meta = chart.getDatasetMeta(0);
       ctx.save();
       ctx.font = "11px 'IBM Plex Mono', monospace";
       ctx.fillStyle = INK;
       meta.data.forEach((point, i) => {
-        const d = withPlaces[i];
+        const d = chart.data.datasets[0].data[i].d;
         ctx.fillText(d.street, point.x + 9, point.y + 3);
       });
       ctx.restore();
     }
   }]
 });
+
+function renderQuadrant(){
+  const points = withPlaces3.map(d => {
+    const x = d[quadMode];
+    const y = d[quadY];
+    let r = 7;
+    if(quadCat !== '__none__'){
+      const c = d.categories[quadCat];
+      const share = d.total_visits > 0 ? c.visits / d.total_visits : 0;
+      r = 5 + share * 30; // more of that category's visits -> bigger point
+    }
+    return {x, y, r, d};
+  });
+  chartQuad.data.datasets[0].data = points;
+  chartQuad.data.datasets[0].pointRadius = points.map(p => p.r);
+  chartQuad.data.datasets[0].backgroundColor = quadCat === '__none__' ? RUST : SLATE;
+  chartQuad.options.scales.x.title.text = quadMode === 'total' ? 'Street traffic -- all measured movement' : (quadMode === 'pedestrian' ? 'Street traffic -- pedestrian movement only' : 'Street traffic -- vehicular movement only');
+  chartQuad.options.scales.y.title.text = quadY === 'total_visits' ? 'Total unique visits to storefronts on that street' : 'Average unique visits per storefront on that street';
+  chartQuad.$medX = median(points.map(p=>p.x));
+  chartQuad.$medY = median(points.map(p=>p.y));
+  chartQuad.update();
+
+  const readingText = document.getElementById('quad-reading-text');
+  if(quadCat === '__none__'){
+    readingText.innerHTML = 'Top-right = high traffic, high visits (proven commercial corridors: Missouri, Montana). Bottom-right = high traffic, low visits (pass-through streets: Ange, Noble, Lee). Top-left = low traffic, high visits (hidden local draws: Nevada). Bottom-left = low traffic, low visits (quiet, largely residential streets).';
+  } else {
+    const withCat = withPlaces3.filter(d => d.categories[quadCat].n > 0).sort((a,b)=>b.categories[quadCat].visits - a.categories[quadCat].visits);
+    const top = withCat.slice(0,3).map(d=>d.street).join(', ');
+    readingText.innerHTML = `Point size now scales with <b>${quadCat}</b>'s share of each street's total visits. Streets already carrying this category, by visit volume: <b>${top || 'none in this subarea'}</b>. A large point in the commercial-corridor quadrant is existing proof of concept; a large point in the hidden-local-draw quadrant suggests an underserved pocket of demand; a small or absent point in the pass-through quadrant is a street this category hasn't tested yet.`;
+  }
+}
+
+document.querySelectorAll('#quad-mode-toggle [data-mode]').forEach(btn => btn.addEventListener('click', e => {
+  quadMode = e.currentTarget.dataset.mode;
+  document.querySelectorAll('#quad-mode-toggle [data-mode]').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  renderQuadrant();
+}));
+document.querySelectorAll('#quad-y-toggle [data-y]').forEach(btn => btn.addEventListener('click', e => {
+  quadY = e.currentTarget.dataset.y;
+  document.querySelectorAll('#quad-y-toggle [data-y]').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  renderQuadrant();
+}));
+document.querySelectorAll('#quad-cat-toggle [data-cat]').forEach(btn => btn.addEventListener('click', e => {
+  quadCat = e.currentTarget.dataset.cat;
+  document.querySelectorAll('#quad-cat-toggle [data-cat]').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  renderQuadrant();
+}));
+
+renderQuadrant();
 </script>
 
 </body>
