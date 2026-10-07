@@ -151,6 +151,50 @@ WALK_MPH_DEFAULT = 3.5
 MAX_GAP_MIN_DEFAULT = 20
 
 
+def trip_mode_hops(pings, max_gap_min, walk_mph):
+    """pings: sorted list of (timestamp, lat, lon) for one device.
+
+    Groups consecutive pings into TRIPS (bounded by max_gap_min, same threshold
+    already used to avoid stitching together unrelated movements), then
+    classifies each trip's mode from its OVERALL speed -- total trip distance
+    divided by total trip time -- instead of each hop's own instantaneous
+    speed. A momentary slowdown (a stoplight, a block of congestion) gets
+    averaged into the trip's overall pace rather than flipping that one hop's
+    mode on its own; a genuine mode change (park the car, then walk) still
+    splits correctly, since that's exactly what a >max_gap_min pause between
+    pings already represents as a new trip.
+
+    Yields (lat1, lon1, lat2, lon2, mode) per hop.
+    """
+    if len(pings) < 2:
+        return
+    trips = []
+    current = [pings[0]]
+    for prev, cur in zip(pings, pings[1:]):
+        dt_min = (cur[0] - prev[0]) / 60.0
+        if dt_min <= 0 or dt_min > max_gap_min:
+            if len(current) >= 2:
+                trips.append(current)
+            current = [cur]
+        else:
+            current.append(cur)
+    if len(current) >= 2:
+        trips.append(current)
+
+    for trip in trips:
+        total_dist = 0.0
+        total_time_min = 0.0
+        for a, b in zip(trip, trip[1:]):
+            total_dist += haversine_miles(a[1], a[2], b[1], b[2])
+            total_time_min += (b[0] - a[0]) / 60.0
+        if total_time_min <= 0:
+            continue
+        trip_speed_mph = total_dist / (total_time_min / 60.0)
+        mode = "pedestrian" if trip_speed_mph <= walk_mph else "vehicular"
+        for a, b in zip(trip, trip[1:]):
+            yield a[1], a[2], b[1], b[2], mode
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pathing_report", type=Path)
@@ -219,13 +263,7 @@ def main():
         pings.sort(key=lambda p: p[0])
         origin = device_origin.get(udid, None)
         origin_label = origin if origin else "unresolved"
-        for (t1, lat1, lon1), (t2, lat2, lon2) in zip(pings, pings[1:]):
-            dt_min = (t2 - t1) / 60.0
-            if dt_min <= 0 or dt_min > args.max_gap_min:
-                continue
-            dist_mi = haversine_miles(lat1, lon1, lat2, lon2)
-            speed_mph = dist_mi / (dt_min / 60.0)
-            mode = "pedestrian" if speed_mph <= args.walk_mph else "vehicular"
+        for lat1, lon1, lat2, lon2, mode in trip_mode_hops(pings, args.max_gap_min, args.walk_mph):
             mid_lat, mid_lon = (lat1 + lat2) / 2, (lon1 + lon2) / 2
             street = nearest_street(mid_lat, mid_lon, streets, buffer_miles)
             if not street:

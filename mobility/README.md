@@ -51,6 +51,25 @@ complaining it can't find a column, open the script and edit the
 `COLUMN_PATTERNS` dict near the top to match your file's exact headers, then
 re-run.
 
+**Methodology correction (2026-10-07) -- mode is classified per TRIP, not per
+hop:** `pathing_mode_street.py`, `street_traffic_origin.py`, and
+`street_segment_classification.py` all reconstruct a device's path as
+consecutive ping-to-ping hops, then need to call each hop pedestrian or
+vehicular from its implied speed. Classifying each hop independently from its
+own instantaneous speed meant a car briefly slowed by a stoplight or
+congestion could get that one hop mislabeled "pedestrian," even though it's
+the same car the whole way through. All three scripts now group a device's
+pings into trips first (bounded by `--max-gap-min`, the same threshold
+already used to avoid stitching together unrelated movements), classify each
+trip's mode from its OVERALL speed (total trip distance / total trip time),
+and apply that one label to every hop in the trip -- so a momentary slowdown
+gets averaged into the trip's pace instead of flipping that hop's mode on its
+own, while a genuine mode change (park the car, then walk) still splits
+correctly, since that's exactly what a >`max-gap-min` pause already
+represents as a new trip. If you ran any of these scripts before this date,
+**the mode counts are worth re-running** -- re-running against the same raw
+report files with the current script version will apply this fix.
+
 ## Outputs (`outputs/`)
 
 Generated CSVs land here by default: `place_visit_density.csv`,

@@ -106,6 +106,50 @@ def haversine_miles(lat1, lon1, lat2, lon2):
     return 2 * r * math.asin(math.sqrt(a))
 
 
+def trip_mode_hops(pings, max_gap_min, walk_mph):
+    """pings: sorted list of (ts, lat, lon, date, dow) for one device.
+
+    Groups consecutive pings into TRIPS (bounded by max_gap_min, same
+    threshold already used to avoid stitching together unrelated movements),
+    then classifies each trip's mode from its OVERALL speed -- total trip
+    distance divided by total trip time -- instead of each hop's own
+    instantaneous speed. A momentary slowdown (a stoplight, a block of
+    congestion) gets averaged into the trip's overall pace rather than
+    flipping that one hop's mode on its own; a genuine mode change (park the
+    car, then walk) still splits correctly, since that's exactly what a
+    >max_gap_min pause between pings already represents as a new trip.
+
+    Yields (lat1, lon1, lat2, lon2, mode, date2, dow2) per hop.
+    """
+    if len(pings) < 2:
+        return
+    trips = []
+    current = [pings[0]]
+    for prev, cur in zip(pings, pings[1:]):
+        dt_min = (cur[0] - prev[0]) / 60.0
+        if dt_min <= 0 or dt_min > max_gap_min:
+            if len(current) >= 2:
+                trips.append(current)
+            current = [cur]
+        else:
+            current.append(cur)
+    if len(current) >= 2:
+        trips.append(current)
+
+    for trip in trips:
+        total_dist = 0.0
+        total_time_min = 0.0
+        for a, b in zip(trip, trip[1:]):
+            total_dist += haversine_miles(a[1], a[2], b[1], b[2])
+            total_time_min += (b[0] - a[0]) / 60.0
+        if total_time_min <= 0:
+            continue
+        trip_speed_mph = total_dist / (total_time_min / 60.0)
+        mode = "pedestrian" if trip_speed_mph <= walk_mph else "vehicular"
+        for a, b in zip(trip, trip[1:]):
+            yield a[1], a[2], b[1], b[2], mode, b[3], b[4]
+
+
 def build_street_buffers(streets_path, buffer_ft):
     streets = gpd.read_file(streets_path)
     if streets.crs is None:
@@ -181,24 +225,16 @@ def main():
     dropped_gap = 0
     for dev, pings in device_pings.items():
         pings.sort(key=lambda p: p[0])
-        for (ts1, lat1, lon1, date1, dow1), (ts2, lat2, lon2, date2, dow2) in zip(pings, pings[1:]):
-            dt_min = (ts2 - ts1) / 60.0
-            if dt_min <= 0 or dt_min > args.max_gap_min:
-                dropped_gap += 1
-                continue
-            dist_mi = haversine_miles(lat1, lon1, lat2, lon2)
-            speed_mph = dist_mi / (dt_min / 60.0) if dt_min > 0 else 0
-            mode = 'pedestrian' if speed_mph <= args.walk_mph else 'vehicular'
+        for lat1, lon1, lat2, lon2, mode, date2, dow2 in trip_mode_hops(pings, args.max_gap_min, args.walk_mph):
             mid_lat, mid_lon = (lat1 + lat2) / 2, (lon1 + lon2) / 2
-            # hour bucket from the later ping's local time, if we have it
-            hour = None
             seg_rows.append({
                 'device': dev, 'mid_lat': mid_lat, 'mid_lon': mid_lon,
-                'speed_mph': speed_mph, 'mode': mode,
+                'mode': mode,
                 'date': date2, 'dow': dow2,
             })
 
-    print(f"Segments built: {len(seg_rows):,}  (dropped for gap/zero-time: {dropped_gap:,})")
+    print(f"Segments built: {len(seg_rows):,} (mode classified per trip, not per hop -- "
+          f"see trip_mode_hops; gaps over --max-gap-min already excluded while grouping trips)")
     if not seg_rows:
         sys.exit("No usable segments -- check MAX_GAP_MIN and your timestamp column.")
 
