@@ -1,1 +1,2 @@
 mobility/outputs/*.csv
+__pycache__/
