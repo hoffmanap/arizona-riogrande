@@ -98,12 +98,15 @@ footer a{color:var(--slate);}
       </div>
     </div>
     <div class="card" style="margin-top:20px;">
-      <h3>Who's coming -- resident / worker overlap <span class="pill">share of matched-device sample</span></h3>
-      <div class="statrow"><span class="lab">Lives in or near the subarea (resident)</span><span class="val">55%</span></div>
-      <div class="statrow"><span class="lab">Works in or near the subarea (worker)</span><span class="val">48%</span></div>
-      <div class="statrow"><span class="lab">Both lives AND works here</span><span class="val">2.8%</span></div>
-      <div class="statrow" style="border-bottom:none;"><span class="lab">Neither flag (pass-through / visiting)</span><span class="val">~40%</span></div>
+      <h3>Who's coming -- resident / worker overlap <span class="pill">share of matched-device sample, sums to 100%</span></h3>
+      <div class="statrow"><span class="lab">Resident only -- lives in/near the subarea, doesn't work here</span><span class="val">52.2%</span></div>
+      <div class="statrow"><span class="lab">Worker only -- works in/near the subarea, doesn't live here</span><span class="val">45.0%</span></div>
+      <div class="statrow" style="border-bottom:none;"><span class="lab">Both lives AND works here</span><span class="val">2.8%</span></div>
     </div>
+    <p style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">This breakdown covers only the devices this report could confidently
+    match to a home and/or work location -- it isn't a measure of all subarea visitors, so there's no
+    meaningful "neither" or "pass-through" category here; every matched device is resident, worker, or both
+    by construction.</p>
   </div>
 
   <!-- SECTION 2: DWELL TIME -->
