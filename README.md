@@ -1,4 +1,4 @@
-# Arizona-Rio Grande — Zoning Modernization
+# Five Points Subarea — Zoning Modernization
 
 Parcel-level nonconformity analysis and policy-design tools for a 799-parcel subarea north of
 Downtown El Paso (the Wyoming / Missouri / Yandell corridor and surrounding residential blocks),
@@ -7,7 +7,7 @@ built to support a Title 20 subarea rezoning.
 **Live demo:** once hosted on GitHub Pages, the whole thing lives at one URL:
 
 ```
-https://hoffmanap.github.io/arizona-riogrande/
+https://<your-username>.github.io/<your-repo>/
 ```
 
 That URL loads `index.html`, a two-tab landing page with both tools embedded — no separate links
@@ -23,7 +23,7 @@ to hand anyone.
 | `El_Paso_Subarea_Parcel_Compliance_Analysis.xlsx` | The full per-parcel audit trail: methodology, use/setback/parking/lot-area compliance detail, the Legal Nonconforming registry cross-check, and the R-5 unit-count review — this is the source of truth `story.html` and `builder.html` summarize and visualize. |
 | `el_paso_subarea_parcel_compliance.geojson` | Parcel-level compliance data as plain GeoJSON, for use in QGIS/ArcGIS or any other GIS tool outside the browser tools here. |
 | `el_paso_subarea_legal_nonconforming_points.geojson` | The City's own Legal Nonconforming registry points that fall in or near the subarea, for the same purpose. |
-| `landuse.html` | **New.** Standalone existing-land-use map: current use per parcel (single-family, duplex, multifamily/apartment, office, retail/commercial, restaurant/food service, automotive/industrial, health care, institutional/civic, vacant, mixed/other commercial, unclassified) as the primary color symbology, with detailed per-parcel tooltips (address, zoning district, established use detail, unit counts, lot/building area, coverage). Current-conditions map, not a policy proposal -- separate from the proposed subdistrict map in `story.html`. Fully self-contained, independently linkable. |
+| `landuse.html` | Standalone existing-land-use map: current use per parcel (single-family, duplex, multifamily/apartment, office, retail/commercial, restaurant/food service, automotive/industrial, health care, institutional/civic, vacant, mixed/other commercial, unclassified) as the primary color symbology, with detailed per-parcel tooltips (address, zoning district, established use detail, unit counts, lot/building area, coverage, year built). A "Color map by" toggle switches the fill between Land Use and Decade Built (a sequential ramp from the earliest decade to the most recent); a separate decade legend filters parcels by construction decade -- independently of, and in combination with, the land-use legend -- including a one-click "pre-1930 only" filter keyed to the city's 1930 zoning adoption date. Current-conditions map, not a policy proposal -- separate from the proposed subdistrict map in `story.html`. Fully self-contained, independently linkable. |
 
 `story.html` and `builder.html` each carry their own data inline (no separate data files to keep
 in sync) — open either one directly as a normal HTML file and it works with no server, no build
@@ -38,9 +38,35 @@ their respective CDNs.
 2. In the repo's **Settings → Pages**, point GitHub Pages at that location.
 3. GitHub serves `index.html` automatically at the repo's Pages URL — nothing else to configure.
 
-No other setup is required. All three HTML files are static, dependency-free beyond the two CDN
+No other setup is required. All four HTML files are static, dependency-free beyond the two CDN
 includes (Leaflet, Google Fonts), and work the same locally (double-click to open in a browser) as
 they do hosted.
+
+## Year built by decade
+
+784 of the subarea's 799 parcels (98%) have a recorded year built (Regrid/assessor data); 15 are
+unknown. **508 parcels — 64% of parcels with a known year, 64% of all parcels in the subarea — were
+built before 1930**, the year the City of El Paso adopted zoning. Explore this interactively in
+`landuse.html`'s "Decade Built" color mode and the "pre-1930 only" filter.
+
+| Decade | Parcels (n) | Share of subarea (%) |
+|---|---|---|
+| Pre-1900 | 37 | 4.6% |
+| 1900s | 131 | 16.4% |
+| 1910s | 177 | 22.2% |
+| 1920s | 163 | 20.4% |
+| **1930s** | 52 | 6.5% |
+| 1940s | 55 | 6.9% |
+| 1950s | 66 | 8.3% |
+| 1960s | 36 | 4.5% |
+| 1970s | 13 | 1.6% |
+| 1980s | 12 | 1.5% |
+| 1990s | 4 | 0.5% |
+| 2000s | 17 | 2.1% |
+| 2010s | 16 | 2.0% |
+| 2020s | 5 | 0.6% |
+| Unknown | 15 | 1.9% |
+| **Total** | **799** | **100.0%** |
 
 ## Methodology summary
 
