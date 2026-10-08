@@ -167,12 +167,17 @@ footer a{color:var(--slate);}
     (so planning those blocks around single-family makes little sense regardless of zoning history).</p>
     <div class="finding"><b>Missouri is both the single busiest street in the subarea and the most
     vehicular</b> -- it carries <b>13.7% of all measured movement in the subarea</b> (more than any other
-    street), and 64% of its own volume is vehicular. <b>Yandell, Lee, Newman, and
-    Octavia are majority-pedestrian</b> and well-suited to walkable, small-format retail. Missouri's
-    share of total volume alone makes it a poor candidate for single-family-only zoning: whatever the
-    historic zoning says, the ground truth is a busy, car-dominated corridor that should permit (and may
-    already have) commercial uses with real transportation planning, not a residential street carrying
-    nearly two-thirds vehicular traffic.</div>
+    street), and <b>67% of its own volume is vehicular</b>, the highest share of any of the subarea's high-
+    volume corridors. Once mode was corrected to classify by whole trip rather than by individual
+    ping-to-ping hop (a momentary slowdown no longer flips a car's mode mid-trip), the overall picture
+    shifted toward pedestrian: <b>10 of the subarea's 21 streets are now majority-pedestrian</b>, including
+    every other high-volume corridor except Missouri, Montana, Brown, and Dallas. <b>Missouri and Montana are
+    the clearest car-oriented corridors</b> among the busy streets; <b>Yandell, Lee, Octavia, Rio Grande, and
+    Wyoming are majority-pedestrian</b> and well-suited to walkable, small-format retail. Missouri's share of
+    total volume alone makes it a poor candidate for single-family-only zoning: whatever the historic zoning
+    says, the ground truth is a busy, car-dominated corridor that should permit (and may already have)
+    commercial uses with real transportation planning, not a residential street carrying two-thirds vehicular
+    traffic.</div>
     <div class="card">
       <h3>Pedestrian vs. vehicular share, by street (ranked by total volume)</h3>
       <div class="chartbox tall"><canvas id="chart-mode"></canvas></div>
@@ -351,11 +356,11 @@ document.querySelectorAll('#dwell-cat-toggle [data-cat]').forEach(btn => {
 
 // --- Section 3: street mode split ---
 const streetMode = [
-  ['MISSOURI',36.0,64.0],['YANDELL',59.6,40.4],['MONTANA',48.0,52.0],['WYOMING',50.6,49.4],
-  ['RIO GRANDE',52.3,47.7],['ANGE',50.1,49.9],['BROWN',46.5,53.5],['OCTAVIA',55.4,44.6],
-  ['ARIZONA',49.1,50.9],['DALLAS',49.4,50.6],['NOBLE',49.2,50.8],['NEWMAN',57.2,42.8],
-  ['LEE',62.3,37.7],['LANGTRY',54.9,45.1],['NEVADA',54.1,45.9],['CALIFORNIA',31.1,68.9],
-  ['RIVER',36.5,63.5],['CLIFF',22.5,77.5],['GOLDEN HILL TERRACE',36.5,63.5],['CIRCLE',26.3,73.7],['WRIGHT',31.7,68.3]
+  ['MISSOURI',33.2,66.8],['YANDELL',64.3,35.7],['MONTANA',42.5,57.5],['WYOMING',58.9,41.1],
+  ['RIO GRANDE',59.8,40.2],['ANGE',52.0,48.0],['BROWN',48.8,51.2],['OCTAVIA',61.9,38.1],
+  ['ARIZONA',57.8,42.2],['DALLAS',48.6,51.4],['NOBLE',57.5,42.5],['NEWMAN',59.9,40.1],
+  ['LEE',69.2,30.8],['LANGTRY',44.9,55.1],['NEVADA',58.6,41.4],['CALIFORNIA',26.6,73.4],
+  ['RIVER',31.1,68.9],['CLIFF',9.2,90.8],['GOLDEN HILL TERRACE',34.8,65.2],['CIRCLE',11.9,88.1],['WRIGHT',27.3,72.7]
 ];
 new Chart(document.getElementById('chart-mode'), {
   type: 'bar',
