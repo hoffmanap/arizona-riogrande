@@ -100,12 +100,23 @@ footer a{color:var(--slate);}
   <div class="num">02 / STREET-LEVEL TRAFFIC</div>
   <h2>Where traffic is heaviest, and whether it's walked or driven</h2>
   <p>Every measured street segment, colored by total movement volume. Filter by mode to see which streets'
-  volume is mostly pedestrian, mostly vehicular, or an even split -- "All" shows total volume regardless of mode.</p>
+  volume is mostly pedestrian, mostly vehicular, or an even split -- "All" shows total volume regardless of mode.
+  Switch the <b>Layer</b> toggle to <b>Block classification</b> to see the same streets broken into their
+  actual blocks (the segment between two cross streets, not the whole named street) and labeled LOCAL,
+  PASS-THROUGH, or DESTINATION -- answering whether a busy street is busy because people are stopping there
+  or just driving through it, block by block rather than street by street.</p>
 </div>
 <div class="wrap">
   <div class="mapcol"><div id="map-traffic"></div></div>
   <div class="sidebar">
     <div class="card">
+      <h3>Layer</h3>
+      <div class="mode-toggle" id="traffic-layer-toggle">
+        <button type="button" class="mode-btn active" data-layer="volume">Traffic volume</button>
+        <button type="button" class="mode-btn" data-layer="classification">Block classification</button>
+      </div>
+    </div>
+    <div class="card" id="card-traffic-mode">
       <h3>Mode</h3>
       <div class="mode-toggle">
         <button type="button" class="mode-btn active" data-mode="all">All</button>
@@ -119,7 +130,7 @@ footer a{color:var(--slate);}
       <div class="legend-grad-labels" id="legend-traffic-labels"><span>low</span><span>high</span></div>
     </div>
     <div class="card" id="card-traffic-detail">
-      <h3>Selected street</h3>
+      <h3>Selected block</h3>
       <div class="placeholder" id="traffic-placeholder">Click a street on the map for its stats.</div>
       <div class="detail" id="traffic-detail" style="display:none;"></div>
     </div>
@@ -164,10 +175,10 @@ footer a{color:var(--slate);}
         <button type="button" class="mode-btn" data-origin="distant">Distant (resolved)</button>
       </div>
       <p style="font-size:11.5px;color:var(--ink-soft);margin:8px 0 0;" id="origin-caveat">Of all measured movement
-      on these streets, a device's home location could only be resolved for <b>5-16%</b> of segments (the rest
+      on these streets, a device's home location could only be resolved for <b>1.5-24%</b> of segments (the rest
       -- 84-99% depending on the street -- is labeled "unresolved" in <code>street_traffic_origin.csv</code>,
       not "pass-through"; SafeGraph simply couldn't match that device to a home). Among segments that WERE
-      resolved, the large majority are local (63-100% depending on the street) and very few are from &gt;3 miles
+      resolved, the large majority are local (64-100% depending on the street) and very few are from &gt;3 miles
       away -- so this subarea sees almost no confirmed regional pass-through traffic, but most trips remain of
       unknown origin. "Local" and "Distant" below use only the resolved segments, scaled down accordingly -- treat
       them as a sample, not full volume.</p>
@@ -347,10 +358,23 @@ document.getElementById('btn-visits-density').addEventListener('click', e => {
 const mapTraffic = makeBaseMap('map-traffic');
 let trafficLayer = null;
 let trafficMode = 'all'; // 'all' | 'pedestrian' | 'vehicular'
+let trafficLayerType = 'volume'; // 'volume' | 'classification'
 let trafficData = null;
+let classData = null;
 
-fetch('mobility/data/street_traffic_joined.geojson').then(r=>r.json()).then(data => {
-  trafficData = data;
+const CLASS_COLORS = { 'LOCAL': PARCH_DARK, 'PASS-THROUGH': RUST, 'DESTINATION': SLATE };
+const CLASS_LABELS = {
+  'LOCAL': 'Local street -- low traffic, mostly residential',
+  'PASS-THROUGH': 'Pass-through -- high traffic, no storefronts stopping it',
+  'DESTINATION': 'Destination -- high traffic AND real business visits'
+};
+
+Promise.all([
+  fetch('mobility/data/street_traffic_joined.geojson').then(r=>r.json()),
+  fetch('mobility/data/street_segment_classification_joined.geojson').then(r=>r.json())
+]).then(([vol, cls]) => {
+  trafficData = vol;
+  classData = cls;
   renderTrafficLayer();
 });
 
@@ -361,6 +385,7 @@ function trafficValue(p, mode){
 }
 
 function renderTrafficLayer(){
+  if(trafficLayerType === 'classification'){ renderClassificationLayer(); return; }
   if(!trafficData) return;
   if(trafficLayer) mapTraffic.removeLayer(trafficLayer);
 
@@ -391,7 +416,40 @@ function renderTrafficLayer(){
   const labels = document.getElementById('legend-traffic-labels');
   const modeLabel = trafficMode === 'all' ? 'Total movements' : (trafficMode === 'pedestrian' ? 'Pedestrian movements' : 'Vehicular movements');
   title.innerHTML = `${modeLabel}<span class="note">21 streets &middot; 175 segments &middot; line weight + color both scale with volume</span>`;
+  document.getElementById('legend-traffic-grad').style.display = '';
   labels.innerHTML = `<span>${Math.min(...values).toLocaleString()}</span><span>${Math.max(...values).toLocaleString()}</span>`;
+}
+
+function renderClassificationLayer(){
+  if(!classData) return;
+  if(trafficLayer) mapTraffic.removeLayer(trafficLayer);
+
+  trafficLayer = L.geoJSON(classData, {
+    style: feature => ({ color: CLASS_COLORS[feature.properties.classification] || INK, weight: 5, opacity: 0.9 }),
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties;
+      const cross = `between ${p.cross_street_a} and ${p.cross_street_b}`;
+      layer.bindPopup(
+        `<div class="popup-addr">${p.STREETNAME} <span style="font-weight:400;">(${cross})</span></div>` +
+        `<div class="popup-row"><span>Classification</span><b>${p.classification}</b></div>` +
+        `<div class="popup-row"><span>Total movements on this block</span><b>${p.n_segments_total.toLocaleString()}</b></div>` +
+        `<div class="popup-row"><span>Storefronts / visits (excl. Lessors)</span><b>${p.n_places_excl_lessors} / ${Math.round(p.visits_excl_lessors).toLocaleString()}</b></div>`
+      );
+      layer.on('click', () => showClassificationDetail(p));
+      layer.on('mouseover', () => layer.setStyle({weight: 7}));
+      layer.on('mouseout', () => layer.setStyle({weight: 5}));
+    }
+  }).addTo(mapTraffic);
+
+  const title = document.getElementById('legend-traffic-title');
+  title.innerHTML = `Block classification <span class="note">175 blocks (the actual segment between two cross streets, not whole streets) &middot; LOCAL = below-median traffic &middot; of the above-median-traffic blocks, DESTINATION has real (non-Lessors) business visits and PASS-THROUGH has none</span>`;
+  document.getElementById('legend-traffic-grad').style.display = 'none';
+  const labels = document.getElementById('legend-traffic-labels');
+  labels.innerHTML = Object.entries(CLASS_COLORS).map(([k,c]) =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:12px;background:${c};border:1px solid var(--ink);"></span>${k}</span>`
+  ).join('');
+  labels.style.justifyContent = 'flex-start';
+  labels.style.gap = '14px';
 }
 
 function showTrafficDetail(p){
@@ -405,11 +463,36 @@ function showTrafficDetail(p){
     `<div class="statrow" style="border-bottom:none;"><span class="lab">Total movements</span><span class="val">${p.total_segments.toLocaleString()}</span></div>`;
 }
 
-document.querySelectorAll('#card-traffic-legend ~ .card, .mode-toggle [data-mode]').forEach(()=>{});
-document.querySelectorAll('[data-mode]').forEach(btn => {
+function showClassificationDetail(p){
+  document.getElementById('traffic-placeholder').style.display = 'none';
+  const el = document.getElementById('traffic-detail');
+  el.style.display = 'block';
+  const pctLocal = p.pct_local_of_resolved === null ? 'n/a (no resolved segments)' : `${p.pct_local_of_resolved}%`;
+  el.innerHTML =
+    `<div class="addr">${p.STREETNAME} <span style="font-weight:400;font-size:12px;">between ${p.cross_street_a} &amp; ${p.cross_street_b}</span></div>` +
+    `<div class="statrow"><span class="lab">Classification</span><span class="val">${p.classification}</span></div>` +
+    `<div class="statrow"><span class="lab">Total movements on this block</span><span class="val">${p.n_segments_total.toLocaleString()}</span></div>` +
+    `<div class="statrow"><span class="lab">Pedestrian / vehicular</span><span class="val">${p.n_segments_pedestrian.toLocaleString()} / ${p.n_segments_vehicular.toLocaleString()}</span></div>` +
+    `<div class="statrow"><span class="lab">% local-origin of resolved trips</span><span class="val">${pctLocal}</span></div>` +
+    `<div class="statrow"><span class="lab">Storefronts (excl. Lessors of Real Estate)</span><span class="val">${p.n_places_excl_lessors}</span></div>` +
+    `<div class="statrow" style="border-bottom:none;"><span class="lab">Visits to those storefronts</span><span class="val">${Math.round(p.visits_excl_lessors).toLocaleString()}</span></div>` +
+    (p.note ? `<p style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">${p.note}</p>` : '');
+}
+
+document.querySelectorAll('#traffic-layer-toggle [data-layer]').forEach(btn => btn.addEventListener('click', e => {
+  trafficLayerType = e.currentTarget.dataset.layer;
+  document.querySelectorAll('#traffic-layer-toggle [data-layer]').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('card-traffic-mode').style.display = trafficLayerType === 'volume' ? '' : 'none';
+  document.getElementById('traffic-placeholder').style.display = 'block';
+  document.getElementById('traffic-detail').style.display = 'none';
+  renderTrafficLayer();
+}));
+
+document.querySelectorAll('#card-traffic-mode [data-mode]').forEach(btn => {
   btn.addEventListener('click', e => {
     trafficMode = e.target.dataset.mode;
-    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#card-traffic-mode [data-mode]').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
     renderTrafficLayer();
   });
@@ -422,7 +505,7 @@ const withPlaces3 = quadData.filter(d => d.n_places > 0);
 // Real street_traffic_origin.csv, aggregated per street: local/distant/unresolved segment counts,
 // split by mode. "unresolved" = device not matched to a home record at all (not a classification of
 // distance -- SafeGraph just couldn't resolve it), kept separate from local/distant throughout.
-const originData = {"ANGE": {"local": 941, "distant": 76, "unresolved": 18115, "resolved": 1017, "total": 19132, "localPedestrian": 580, "distantPedestrian": 22, "localVehicular": 361, "distantVehicular": 54, "pctUnresolved": 94.7, "pctLocalOfResolved": 92.5}, "ARIZONA": {"local": 526, "distant": 8, "unresolved": 15236, "resolved": 534, "total": 15770, "localPedestrian": 311, "distantPedestrian": 5, "localVehicular": 215, "distantVehicular": 3, "pctUnresolved": 96.6, "pctLocalOfResolved": 98.5}, "BROWN": {"local": 1027, "distant": 89, "unresolved": 19352, "resolved": 1116, "total": 20468, "localPedestrian": 625, "distantPedestrian": 46, "localVehicular": 402, "distantVehicular": 43, "pctUnresolved": 94.5, "pctLocalOfResolved": 92.0}, "CALIFORNIA": {"local": 31, "distant": 0, "unresolved": 1916, "resolved": 31, "total": 1947, "localPedestrian": 12, "distantPedestrian": 0, "localVehicular": 19, "distantVehicular": 0, "pctUnresolved": 98.4, "pctLocalOfResolved": 100.0}, "CIRCLE": {"local": 36, "distant": 0, "unresolved": 341, "resolved": 36, "total": 377, "localPedestrian": 17, "distantPedestrian": 0, "localVehicular": 19, "distantVehicular": 0, "pctUnresolved": 90.5, "pctLocalOfResolved": 100.0}, "CLIFF": {"local": 7, "distant": 4, "unresolved": 724, "resolved": 11, "total": 735, "localPedestrian": 2, "distantPedestrian": 2, "localVehicular": 5, "distantVehicular": 2, "pctUnresolved": 98.5, "pctLocalOfResolved": 63.6}, "DALLAS": {"local": 717, "distant": 135, "unresolved": 13677, "resolved": 852, "total": 14529, "localPedestrian": 440, "distantPedestrian": 58, "localVehicular": 277, "distantVehicular": 77, "pctUnresolved": 94.1, "pctLocalOfResolved": 84.2}, "GOLDEN HILL TERRACE": {"local": 10, "distant": 0, "unresolved": 544, "resolved": 10, "total": 554, "localPedestrian": 3, "distantPedestrian": 0, "localVehicular": 7, "distantVehicular": 0, "pctUnresolved": 98.2, "pctLocalOfResolved": 100.0}, "LANGTRY": {"local": 784, "distant": 22, "unresolved": 7781, "resolved": 806, "total": 8587, "localPedestrian": 470, "distantPedestrian": 9, "localVehicular": 314, "distantVehicular": 13, "pctUnresolved": 90.6, "pctLocalOfResolved": 97.3}, "LEE": {"local": 630, "distant": 105, "unresolved": 8260, "resolved": 735, "total": 8995, "localPedestrian": 418, "distantPedestrian": 62, "localVehicular": 212, "distantVehicular": 43, "pctUnresolved": 91.8, "pctLocalOfResolved": 85.7}, "MISSOURI": {"local": 2563, "distant": 421, "unresolved": 45832, "resolved": 2984, "total": 48816, "localPedestrian": 1279, "distantPedestrian": 108, "localVehicular": 1284, "distantVehicular": 313, "pctUnresolved": 93.9, "pctLocalOfResolved": 85.9}, "MONTANA": {"local": 2269, "distant": 228, "unresolved": 29315, "resolved": 2497, "total": 31812, "localPedestrian": 1407, "distantPedestrian": 137, "localVehicular": 862, "distantVehicular": 91, "pctUnresolved": 92.2, "pctLocalOfResolved": 90.9}, "NEVADA": {"local": 351, "distant": 2, "unresolved": 5250, "resolved": 353, "total": 5603, "localPedestrian": 204, "distantPedestrian": 0, "localVehicular": 147, "distantVehicular": 2, "pctUnresolved": 93.7, "pctLocalOfResolved": 99.4}, "NEWMAN": {"local": 711, "distant": 111, "unresolved": 12708, "resolved": 822, "total": 13530, "localPedestrian": 384, "distantPedestrian": 54, "localVehicular": 327, "distantVehicular": 57, "pctUnresolved": 93.9, "pctLocalOfResolved": 86.5}, "NOBLE": {"local": 1597, "distant": 114, "unresolved": 11342, "resolved": 1711, "total": 13053, "localPedestrian": 958, "distantPedestrian": 62, "localVehicular": 639, "distantVehicular": 52, "pctUnresolved": 86.9, "pctLocalOfResolved": 93.3}, "OCTAVIA": {"local": 1567, "distant": 57, "unresolved": 12975, "resolved": 1624, "total": 14599, "localPedestrian": 1110, "distantPedestrian": 28, "localVehicular": 457, "distantVehicular": 29, "pctUnresolved": 88.9, "pctLocalOfResolved": 96.5}, "RIO GRANDE": {"local": 4111, "distant": 454, "unresolved": 24572, "resolved": 4565, "total": 29137, "localPedestrian": 2511, "distantPedestrian": 242, "localVehicular": 1600, "distantVehicular": 212, "pctUnresolved": 84.3, "pctLocalOfResolved": 90.1}, "RIVER": {"local": 82, "distant": 0, "unresolved": 1061, "resolved": 82, "total": 1143, "localPedestrian": 8, "distantPedestrian": 0, "localVehicular": 74, "distantVehicular": 0, "pctUnresolved": 92.8, "pctLocalOfResolved": 100.0}, "WRIGHT": {"local": 41, "distant": 0, "unresolved": 131, "resolved": 41, "total": 172, "localPedestrian": 0, "distantPedestrian": 0, "localVehicular": 41, "distantVehicular": 0, "pctUnresolved": 76.2, "pctLocalOfResolved": 100.0}, "WYOMING": {"local": 2480, "distant": 213, "unresolved": 30759, "resolved": 2693, "total": 33452, "localPedestrian": 1318, "distantPedestrian": 120, "localVehicular": 1162, "distantVehicular": 93, "pctUnresolved": 91.9, "pctLocalOfResolved": 92.1}, "YANDELL": {"local": 4812, "distant": 560, "unresolved": 37466, "resolved": 5372, "total": 42838, "localPedestrian": 3237, "distantPedestrian": 304, "localVehicular": 1575, "distantVehicular": 256, "pctUnresolved": 87.5, "pctLocalOfResolved": 89.6}};
+const originData = {"ANGE": {"local": 941, "distant": 76, "unresolved": 18115, "resolved": 1017, "total": 19132, "localPedestrian": 730, "distantPedestrian": 19, "localVehicular": 211, "distantVehicular": 57, "pctUnresolved": 94.7, "pctLocalOfResolved": 92.5}, "ARIZONA": {"local": 526, "distant": 8, "unresolved": 15236, "resolved": 534, "total": 15770, "localPedestrian": 384, "distantPedestrian": 5, "localVehicular": 142, "distantVehicular": 3, "pctUnresolved": 96.6, "pctLocalOfResolved": 98.5}, "BROWN": {"local": 1027, "distant": 89, "unresolved": 19352, "resolved": 1116, "total": 20468, "localPedestrian": 684, "distantPedestrian": 51, "localVehicular": 343, "distantVehicular": 38, "pctUnresolved": 94.5, "pctLocalOfResolved": 92.0}, "CALIFORNIA": {"local": 31, "distant": 0, "unresolved": 1916, "resolved": 31, "total": 1947, "localPedestrian": 15, "distantPedestrian": 0, "localVehicular": 16, "distantVehicular": 0, "pctUnresolved": 98.4, "pctLocalOfResolved": 100.0}, "CIRCLE": {"local": 36, "distant": 0, "unresolved": 341, "resolved": 36, "total": 377, "localPedestrian": 6, "distantPedestrian": 0, "localVehicular": 30, "distantVehicular": 0, "pctUnresolved": 90.5, "pctLocalOfResolved": 100.0}, "CLIFF": {"local": 7, "distant": 4, "unresolved": 724, "resolved": 11, "total": 735, "localPedestrian": 5, "distantPedestrian": 4, "localVehicular": 2, "distantVehicular": 0, "pctUnresolved": 98.5, "pctLocalOfResolved": 63.6}, "DALLAS": {"local": 717, "distant": 135, "unresolved": 13677, "resolved": 852, "total": 14529, "localPedestrian": 541, "distantPedestrian": 67, "localVehicular": 176, "distantVehicular": 68, "pctUnresolved": 94.1, "pctLocalOfResolved": 84.2}, "GOLDEN HILL TERRACE": {"local": 10, "distant": 0, "unresolved": 544, "resolved": 10, "total": 554, "localPedestrian": 6, "distantPedestrian": 0, "localVehicular": 4, "distantVehicular": 0, "pctUnresolved": 98.2, "pctLocalOfResolved": 100.0}, "LANGTRY": {"local": 784, "distant": 22, "unresolved": 7781, "resolved": 806, "total": 8587, "localPedestrian": 504, "distantPedestrian": 2, "localVehicular": 280, "distantVehicular": 20, "pctUnresolved": 90.6, "pctLocalOfResolved": 97.3}, "LEE": {"local": 630, "distant": 105, "unresolved": 8260, "resolved": 735, "total": 8995, "localPedestrian": 541, "distantPedestrian": 88, "localVehicular": 89, "distantVehicular": 17, "pctUnresolved": 91.8, "pctLocalOfResolved": 85.7}, "MISSOURI": {"local": 2563, "distant": 421, "unresolved": 45832, "resolved": 2984, "total": 48816, "localPedestrian": 1533, "distantPedestrian": 103, "localVehicular": 1030, "distantVehicular": 318, "pctUnresolved": 93.9, "pctLocalOfResolved": 85.9}, "MONTANA": {"local": 2269, "distant": 228, "unresolved": 29315, "resolved": 2497, "total": 31812, "localPedestrian": 1700, "distantPedestrian": 135, "localVehicular": 569, "distantVehicular": 93, "pctUnresolved": 92.2, "pctLocalOfResolved": 90.9}, "NEVADA": {"local": 351, "distant": 2, "unresolved": 5250, "resolved": 353, "total": 5603, "localPedestrian": 295, "distantPedestrian": 2, "localVehicular": 56, "distantVehicular": 0, "pctUnresolved": 93.7, "pctLocalOfResolved": 99.4}, "NEWMAN": {"local": 711, "distant": 111, "unresolved": 12708, "resolved": 822, "total": 13530, "localPedestrian": 558, "distantPedestrian": 71, "localVehicular": 153, "distantVehicular": 40, "pctUnresolved": 93.9, "pctLocalOfResolved": 86.5}, "NOBLE": {"local": 1597, "distant": 114, "unresolved": 11342, "resolved": 1711, "total": 13053, "localPedestrian": 1259, "distantPedestrian": 65, "localVehicular": 338, "distantVehicular": 49, "pctUnresolved": 86.9, "pctLocalOfResolved": 93.3}, "OCTAVIA": {"local": 1567, "distant": 57, "unresolved": 12975, "resolved": 1624, "total": 14599, "localPedestrian": 1269, "distantPedestrian": 30, "localVehicular": 298, "distantVehicular": 27, "pctUnresolved": 88.9, "pctLocalOfResolved": 96.5}, "RIO GRANDE": {"local": 4111, "distant": 454, "unresolved": 24572, "resolved": 4565, "total": 29137, "localPedestrian": 3031, "distantPedestrian": 363, "localVehicular": 1080, "distantVehicular": 91, "pctUnresolved": 84.3, "pctLocalOfResolved": 90.1}, "RIVER": {"local": 82, "distant": 0, "unresolved": 1061, "resolved": 82, "total": 1143, "localPedestrian": 48, "distantPedestrian": 0, "localVehicular": 34, "distantVehicular": 0, "pctUnresolved": 92.8, "pctLocalOfResolved": 100.0}, "WRIGHT": {"local": 41, "distant": 0, "unresolved": 131, "resolved": 41, "total": 172, "localPedestrian": 12, "distantPedestrian": 0, "localVehicular": 29, "distantVehicular": 0, "pctUnresolved": 76.2, "pctLocalOfResolved": 100.0}, "WYOMING": {"local": 2480, "distant": 213, "unresolved": 30759, "resolved": 2693, "total": 33452, "localPedestrian": 1893, "distantPedestrian": 111, "localVehicular": 587, "distantVehicular": 102, "pctUnresolved": 91.9, "pctLocalOfResolved": 92.1}, "YANDELL": {"local": 4812, "distant": 560, "unresolved": 37466, "resolved": 5372, "total": 42838, "localPedestrian": 3597, "distantPedestrian": 426, "localVehicular": 1215, "distantVehicular": 134, "pctUnresolved": 87.5, "pctLocalOfResolved": 89.6}};
 
 function originValue(street, mode, origin){
   const o = originData[street];
@@ -560,7 +643,7 @@ function renderQuadrant(){
     base = `Point size now scales with <b>${quadCat}</b>'s share of each street's total visits. Streets already carrying this category, by visit volume: <b>${top || 'none in this subarea'}</b>. A large point in the commercial-corridor quadrant is existing proof of concept; a large point in the hidden-local-draw quadrant suggests an underserved pocket of demand; a small or absent point in the pass-through quadrant is a street this category hasn't tested yet.`;
   }
   if(quadOrigin !== 'all'){
-    base += ` <b>Note:</b> the x-axis right now plots only ${quadOrigin}-origin segments where a device's home could be resolved -- a small, uneven sample (5-16% of each street's total movement) and not the street's real traffic volume, so quadrant position under this toggle reflects sample composition more than scale.`;
+    base += ` <b>Note:</b> the x-axis right now plots only ${quadOrigin}-origin segments where a device's home could be resolved -- a small, uneven sample (1.5-24% of each street's total movement) and not the street's real traffic volume, so quadrant position under this toggle reflects sample composition more than scale.`;
   }
   readingText.innerHTML = base;
 }

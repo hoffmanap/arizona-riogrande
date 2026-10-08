@@ -35,16 +35,21 @@ METHOD
    home, not commercial draw, and including it would inflate "destination"
    scores for apartment-heavy blocks that aren't commercial at all (same
    caveat flagged for dwell-time-by-category in mobility.html).
-4. Classify each block by comparing its traffic volume and (non-Lessors)
-   visits-per-unit-traffic to the subarea-wide median of each, the same
-   median-split logic used in visits.html's quadrant tool, so a block's
-   label is relative to this subarea, not an absolute threshold:
-       traffic >= median_traffic  &  visits/traffic >= median_ratio  -> DESTINATION
-       traffic >= median_traffic  &  visits/traffic <  median_ratio  -> PASS-THROUGH
-       traffic <  median_traffic                                     -> LOCAL
-   (a low-traffic block with high visits/traffic -- a "hidden draw" -- is
-   still flagged LOCAL here since its absolute traffic is low, but is noted
-   separately in the output so it isn't lost.)
+4. Classify each block by comparing its traffic volume to the subarea-wide
+   median (so a block's LOCAL/not-LOCAL label is relative to this subarea,
+   not an absolute threshold), then -- for the high-traffic blocks -- whether
+   it has ANY (non-Lessors) business visits at all:
+       traffic <  median_traffic                      -> LOCAL
+       traffic >= median_traffic  &  visits >  0       -> DESTINATION
+       traffic >= median_traffic  &  visits == 0       -> PASS-THROUGH
+   (a low-traffic block with real visits -- a "hidden draw" -- is still
+   flagged LOCAL here since its absolute traffic is low, but is noted
+   separately in the output so it isn't lost.) Note this is NOT a median
+   split on visits-per-traffic ratio: most blocks in this subarea have zero
+   storefronts, so that ratio's median across all blocks is 0, and "ratio >=
+   0" is true for every block by construction -- that would silently erase
+   the PASS-THROUGH bucket entirely. Comparing against "any visits at all"
+   avoids that trap.
 
 USAGE
 -----
@@ -397,8 +402,14 @@ def main():
         return n and (s[(n - 1) // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2)
 
     med_traffic = median(traffics)
-    med_ratio = median([ratios[sid] for sid in seg_ids])
-    print(f"Median block traffic: {med_traffic:.0f} segments; median visits-per-traffic ratio: {med_ratio:.4f}")
+    # NOTE: most blocks have zero storefronts, so the median visits-per-traffic ratio across
+    # ALL blocks is 0 -- using "ratio >= median" as the destination test is then trivially true
+    # for every block (ratio is never negative), which silently erases the PASS-THROUGH bucket
+    # entirely. The real dividing line for "is traffic actually stopping here" is whether the
+    # block has any excl.-Lessors visits at all, not a median computed over a mostly-zero list.
+    n_with_visits = sum(1 for sid in seg_ids if ratios[sid] > 0)
+    print(f"Median block traffic: {med_traffic:.0f} segments; "
+          f"{n_with_visits}/{len(seg_ids)} blocks have any excl.-Lessors visits at all")
 
     out_path = args.out or (args.pathing_report.parent / "street_segment_classification.csv")
     seg_by_id = {s["id"]: s for s in segs}
@@ -418,14 +429,14 @@ def main():
             n_places = seg_places.get(sid, 0)
             ratio = ratios[sid]
             note = ""
-            if total >= med_traffic and ratio >= med_ratio:
-                label = "DESTINATION"
-            elif total >= med_traffic:
-                label = "PASS-THROUGH"
-            else:
+            if total < med_traffic:
                 label = "LOCAL"
-                if ratio >= med_ratio and visits > 0:
-                    note = "hidden draw -- high visits-per-traffic despite low absolute traffic"
+                if visits > 0:
+                    note = "hidden draw -- real visits despite low absolute traffic"
+            elif visits > 0:
+                label = "DESTINATION"
+            else:
+                label = "PASS-THROUGH"
             w.writerow([s["name"], sid, ca, cb, total, seg_ped[sid], seg_veh[sid],
                         pct_local if pct_local is not None else "", n_places,
                         round(visits, 1), round(ratio, 4), label, note])
